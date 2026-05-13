@@ -1,5 +1,5 @@
 {
-  "name": "planka-server",
+  "name": "planka-kanbanize-server",
   "private": true,
   "main": "app.js",
   "scripts": {

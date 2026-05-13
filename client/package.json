@@ -1,5 +1,5 @@
 {
-  "name": "planka-client",
+  "name": "planka-kanbanize-client",
   "private": true,
   "type": "module",
   "scripts": {
