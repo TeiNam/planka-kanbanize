@@ -77,6 +77,77 @@ DEFAULT_ADMIN_PASSWORD=your-password
 DEFAULT_ADMIN_NAME=Admin
 DEFAULT_ADMIN_USERNAME=admin
 ```
+## 프로덕션 배포 (Docker)
+
+### Docker Compose로 배포
+
+`docker-compose.yml` 파일을 생성합니다:
+
+```yaml
+services:
+  planka:
+    image: ghcr.io/teinam/planka-kanbanize:latest
+    restart: unless-stopped
+    volumes:
+      - app-data:/app/data
+    ports:
+      - "1337:1337"
+    environment:
+      - BASE_URL=https://your-domain.com
+      - DATABASE_URL=postgresql://postgres:your-db-password@postgres/planka
+      - SECRET_KEY=your-secret-key-min-32-chars
+      - DEFAULT_ADMIN_EMAIL=admin@your-domain.com
+      - DEFAULT_ADMIN_PASSWORD=your-admin-password
+      - DEFAULT_ADMIN_NAME=Admin
+      - DEFAULT_ADMIN_USERNAME=admin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=planka
+      - POSTGRES_PASSWORD=your-db-password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d planka"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  app-data:
+  db-data:
+```
+
+실행:
+
+```bash
+docker-compose up -d
+```
+
+접속: http://your-domain.com:1337
+
+### 주요 참고사항
+
+- 첫 실행 시 DB 스키마가 자동으로 생성됩니다 (마이그레이션 자동 실행)
+- `SECRET_KEY`는 반드시 안전한 랜덤 문자열로 설정하세요
+- 업데이트 시 이미지를 pull하고 재시작하면 새 마이그레이션이 자동 적용됩니다
+- 데이터는 `app-data` (첨부파일)와 `db-data` (PostgreSQL) 볼륨에 저장됩니다
+
+### 특정 버전 사용
+
+```bash
+# 최신 버전
+image: ghcr.io/teinam/planka-kanbanize:latest
+
+# 특정 버전
+image: ghcr.io/teinam/planka-kanbanize:1.0.0
+```
+
 ## 로컬 개발 (Docker 없이)
 
 ### 사전 요구사항
