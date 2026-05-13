@@ -354,6 +354,53 @@ export const selectFilteredCardIdsForCurrentBoard = createSelector(
   },
 );
 
+// 보드 전체 Total WIP 계산용: wipLimit이 설정된 태스크 컬럼의 카드만 카운트한다.
+// wipLimit이 없는 task 컬럼(예: UAT, Buffer류)은 "관리되지 않는 무제한 컬럼"으로 간주하여
+// 분자(n)와 분모(systemWipLimit) 양쪽에서 모두 제외한다.
+export const selectTaskCardIdsForCurrentBoard = createSelector(
+  orm,
+  (state) => selectPath(state).boardId,
+  ({ Board }, id) => {
+    if (!id) {
+      return id;
+    }
+
+    const boardModel = Board.withId(id);
+
+    if (!boardModel) {
+      return boardModel;
+    }
+
+    const limitedTaskListModels = boardModel
+      .getKanbanListsQuerySet()
+      .toModelArray()
+      .filter(
+        (listModel) =>
+          listModel.type === ListTypes.TASK &&
+          listModel.wipLimit !== null &&
+          listModel.wipLimit !== undefined,
+      );
+
+    const cardIds = [];
+    limitedTaskListModels.forEach((listModel) => {
+      // 부모 list 자체 카드
+      listModel.getFilteredCardsModelArray().forEach((cardModel) => {
+        cardIds.push(cardModel.id);
+      });
+      // 자식 sub-column(Active/Done) 카드도 합산 — Phase 2에서 카드들이 자식 list로 이동
+      if (listModel.subColumns) {
+        listModel.subColumns.toModelArray().forEach((child) => {
+          // 자식 list는 getFilteredCardsModelArray가 없으므로 직접 cards 사용
+          child.cards.toModelArray().forEach((cardModel) => {
+            cardIds.push(cardModel.id);
+          });
+        });
+      }
+    });
+    return cardIds;
+  },
+);
+
 export const selectCustomFieldGroupIdsForCurrentBoard = createSelector(
   orm,
   (state) => selectPath(state).boardId,
@@ -486,6 +533,7 @@ export default {
   selectAvailableListsForCurrentBoard,
   selectCardsExceptCurrentForCurrentBoard,
   selectFilteredCardIdsForCurrentBoard,
+  selectTaskCardIdsForCurrentBoard,
   selectCustomFieldGroupIdsForCurrentBoard,
   selectCustomFieldGroupsForCurrentBoard,
   selectActivityIdsForCurrentBoard,

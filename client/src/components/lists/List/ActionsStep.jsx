@@ -15,6 +15,8 @@ import entryActions from '../../../entry-actions';
 import { useSteps } from '../../../hooks';
 import { ListTypes } from '../../../constants/Enums';
 import EditColorStep from './EditColorStep';
+import EditWipLimitStep from './EditWipLimitStep';
+import EditSubColumnsStep from './EditSubColumnsStep';
 import SortStep from './SortStep';
 import MoveStep from './MoveStep';
 import SelectListTypeStep from '../SelectListTypeStep';
@@ -26,6 +28,8 @@ import styles from './ActionsStep.module.scss';
 const StepTypes = {
   EDIT_TYPE: 'EDIT_TYPE',
   EDIT_COLOR: 'EDIT_COLOR',
+  EDIT_WIP_LIMIT: 'EDIT_WIP_LIMIT',
+  EDIT_SUB_COLUMNS: 'EDIT_SUB_COLUMNS',
   SORT: 'SORT',
   MOVE: 'MOVE',
   ARCHIVE_CARDS: 'ARCHIVE_CARDS',
@@ -74,6 +78,14 @@ const ActionsStep = React.memo(({ listId, onNameEdit, onCardAdd, onClose }) => {
     openStep(StepTypes.EDIT_COLOR);
   }, [openStep]);
 
+  const handleEditWipLimitClick = useCallback(() => {
+    openStep(StepTypes.EDIT_WIP_LIMIT);
+  }, [openStep]);
+
+  const handleEditSubColumnsClick = useCallback(() => {
+    openStep(StepTypes.EDIT_SUB_COLUMNS);
+  }, [openStep]);
+
   const handleSortClick = useCallback(() => {
     openStep(StepTypes.SORT);
   }, [openStep]);
@@ -106,6 +118,10 @@ const ActionsStep = React.memo(({ listId, onNameEdit, onCardAdd, onClose }) => {
         );
       case StepTypes.EDIT_COLOR:
         return <EditColorStep listId={listId} onBack={handleBack} onClose={onClose} />;
+      case StepTypes.EDIT_WIP_LIMIT:
+        return <EditWipLimitStep listId={listId} onBack={handleBack} onClose={onClose} />;
+      case StepTypes.EDIT_SUB_COLUMNS:
+        return <EditSubColumnsStep listId={listId} onBack={handleBack} onClose={onClose} />;
       case StepTypes.SORT:
         return <SortStep listId={listId} onBack={handleBack} onClose={onClose} />;
       case StepTypes.MOVE:
@@ -153,6 +169,24 @@ const ActionsStep = React.memo(({ listId, onNameEdit, onCardAdd, onClose }) => {
               context: 'title',
             })}
           </Menu.Item>
+          {list.type === ListTypes.TASK && !list.parentListId && (
+            <Menu.Item className={styles.menuItem} onClick={handleEditWipLimitClick}>
+              <Icon name="tachometer alternate" className={styles.menuItemIcon} />
+              {t('action.editWipLimit', {
+                context: 'title',
+                defaultValue: 'Edit WIP limit',
+              })}
+            </Menu.Item>
+          )}
+          {list.type === ListTypes.TASK && !list.parentListId && (
+            <Menu.Item className={styles.menuItem} onClick={handleEditSubColumnsClick}>
+              <Icon name="columns" className={styles.menuItemIcon} />
+              {t('action.editSubColumns', {
+                context: 'title',
+                defaultValue: 'Sub-columns',
+              })}
+            </Menu.Item>
+          )}
           <Menu.Item className={styles.menuItem} onClick={handleAddCardClick}>
             <Icon name="list alternate outline" className={styles.menuItemIcon} />
             {t('action.addCard', {

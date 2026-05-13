@@ -1,0 +1,59 @@
+/*!
+ * Copyright (c) 2024 PLANKA Software GmbH
+ * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
+ */
+
+:global(#app) {
+  .wrapper {
+    border-top: 1px solid rgba(9, 30, 66, 0.13);
+    cursor: pointer;
+    padding: 6px 8px;
+
+    &:hover {
+      background-color: rgba(9, 30, 66, 0.04);
+    }
+  }
+
+  .label {
+    color: #5e6c84;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+  }
+
+  .text {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    color: #172b4d;
+    display: -webkit-box;
+    font-size: 12px;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .popoverContent {
+    max-width: 300px;
+  }
+
+  .popoverLabel {
+    color: #5e6c84;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .popoverText {
+    color: #172b4d;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}

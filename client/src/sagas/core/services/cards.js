@@ -367,6 +367,101 @@ export function* moveCard(id, listId, index) {
     data.position = yield select(selectors.selectNextCardPosition, listId, index, id);
   }
 
+  // 활성 블로커 사전 차단: 다른 목록으로 이동하려는 경우만 검사 (같은 목록 내 정렬 허용)
+  try {
+    const cardForBlockerCheck = yield select(selectors.selectCardById, id);
+    if (cardForBlockerCheck && list && cardForBlockerCheck.listId !== list.id) {
+      const activeBlockerCount = yield select(selectors.selectActiveBlockerCount, id);
+      if (activeBlockerCount > 0) {
+        yield call(toast, { type: ToastTypes.CARD_HAS_ACTIVE_BLOCKERS });
+        return;
+      }
+    }
+  } catch (e) {
+    // 사전 검증 실패는 치명적이지 않다 — 서버가 최종 검증을 수행한다.
+    // eslint-disable-next-line no-console
+    console.warn('blocker pre-check failed:', e);
+  }
+
+  // WIP 한도 사전 검증 (block 모드면 거부, warn 모드면 토스트 경고만)
+  // selector가 어떤 이유로 throw해도 카드 이동 자체는 진행되도록 try로 감싼다.
+  let blocked = false;
+  try {
+    const card = yield select(selectors.selectCardById, id);
+    if (card && list && card.listId !== list.id && list.type === ListTypes.TASK) {
+      const board = yield select(selectors.selectBoardById, list.boardId);
+      const sourceList = yield select(selectors.selectListById, card.listId);
+      // 대상의 효과적 부모 list (sub-column이면 그 부모, 아니면 자기 자신)
+      const targetParent = list.parentListId
+        ? yield select(selectors.selectListById, list.parentListId)
+        : list;
+      // 출처의 효과적 부모 list
+      const sourceParent =
+        sourceList && sourceList.parentListId
+          ? yield select(selectors.selectListById, sourceList.parentListId)
+          : sourceList;
+      const targetIsLimited =
+        targetParent &&
+        targetParent.wipLimit !== null &&
+        targetParent.wipLimit !== undefined;
+      const sourceIsLimited =
+        sourceParent &&
+        sourceParent.type === ListTypes.TASK &&
+        sourceParent.wipLimit !== null &&
+        sourceParent.wipLimit !== undefined;
+      const sameParent =
+        targetParent && sourceParent && targetParent.id === sourceParent.id;
+
+      let columnExceeded = false;
+      if (targetIsLimited && !sameParent) {
+        const currentCount = yield select(selectors.selectWipCount, targetParent.id);
+        const projected = (currentCount || 0) + 1;
+        columnExceeded = projected > targetParent.wipLimit;
+      }
+
+      // systemWipLimit 검증: wipLimit이 설정된 task 컬럼만 카운트.
+      // 대상이 wipLimit-있는 task가 아니면 분자에 추가되지 않으므로 검증 불필요.
+      let systemExceeded = false;
+      if (
+        targetIsLimited &&
+        board &&
+        board.systemWipLimit !== null &&
+        board.systemWipLimit !== undefined
+      ) {
+        const totalCardIds = yield select(selectors.selectTaskCardIdsForCurrentBoard);
+        const totalCount = totalCardIds ? totalCardIds.length : 0;
+        const projectedTotal = sourceIsLimited && !sameParent ? totalCount : totalCount + 1;
+        // 단, sameParent이면 합계 변하지 않음
+        const adjusted = sameParent ? totalCount : projectedTotal;
+        systemExceeded = adjusted > board.systemWipLimit;
+      }
+
+      if (columnExceeded || systemExceeded) {
+        const mode = (board && board.wipLimitMode) || 'warn';
+        if (mode === 'block') {
+          yield call(toast, {
+            type: systemExceeded
+              ? ToastTypes.SYSTEM_WIP_LIMIT_EXCEEDED
+              : ToastTypes.WIP_LIMIT_EXCEEDED,
+          });
+          blocked = true;
+        } else {
+          yield call(toast, {
+            type: systemExceeded ? ToastTypes.SYSTEM_WIP_LIMIT_WARN : ToastTypes.WIP_LIMIT_WARN,
+          });
+        }
+      }
+    }
+  } catch (e) {
+    // 사전 검증 실패는 치명적이지 않다 — 서버가 최종 검증을 수행한다.
+    // eslint-disable-next-line no-console
+    console.warn('WIP pre-check failed:', e);
+  }
+
+  if (blocked) {
+    return;
+  }
+
   yield call(updateCard, id, data);
 }
 

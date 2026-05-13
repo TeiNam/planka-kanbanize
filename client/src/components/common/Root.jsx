@@ -36,6 +36,7 @@ function Root({ store, history }) {
               <Route path={Paths.ROOT} element={<Core />} />
               <Route path={Paths.PROJECTS} element={<Core />} />
               <Route path={Paths.BOARDS} element={<Core />} />
+              <Route path={Paths.BOARDS_METRICS} element={<Core />} />
               <Route path={Paths.CARDS} element={<Core />} />
               <Route path="*" element={<GhostError />} />
             </Routes>

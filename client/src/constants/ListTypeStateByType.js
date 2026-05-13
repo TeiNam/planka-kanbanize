@@ -6,6 +6,8 @@
 import { ListTypes, ListTypeStates } from './Enums';
 
 export default {
-  [ListTypes.ACTIVE]: ListTypeStates.OPENED,
+  [ListTypes.BACKLOG]: ListTypeStates.OPENED,
+  [ListTypes.TASK]: ListTypeStates.OPENED,
   [ListTypes.CLOSED]: ListTypeStates.CLOSED,
+  [ListTypes.DISCARD]: ListTypeStates.CLOSED,
 };

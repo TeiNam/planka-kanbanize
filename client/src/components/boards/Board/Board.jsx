@@ -3,8 +3,9 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { useSelector } from 'react-redux';
+import { Loader } from 'semantic-ui-react';
 
 import selectors from '../../../selectors';
 import ModalTypes from '../../../constants/ModalTypes';
@@ -16,26 +17,34 @@ import ShortcutsProvider from './ShortcutsProvider';
 import CardModal from '../../cards/CardModal';
 import BoardActivitiesModal from '../../activities/BoardActivitiesModal';
 
+const MetricsDashboard = lazy(() => import('../../metrics/MetricsDashboard'));
+
 const Board = React.memo(() => {
   const board = useSelector(selectors.selectCurrentBoard);
   const modal = useSelector(selectors.selectCurrentModal);
   const isCardModalOpened = useSelector((state) => !!selectors.selectPath(state).cardId);
+  const isMetricsRoute = useSelector((state) => !!selectors.selectPath(state).isMetricsView);
+
+  // 메트릭 뷰: 뷰 전환 버튼 또는 URL 경로로 접근 가능
+  const isMetricsView = board.view === BoardViews.METRICS || isMetricsRoute;
 
   let Content;
-  if (board.view === BoardViews.KANBAN) {
-    Content = KanbanContent;
-  } else {
-    switch (board.context) {
-      case BoardContexts.BOARD:
-        Content = FiniteContent;
+  if (!isMetricsView) {
+    if (board.view === BoardViews.KANBAN) {
+      Content = KanbanContent;
+    } else {
+      switch (board.context) {
+        case BoardContexts.BOARD:
+          Content = FiniteContent;
 
-        break;
-      case BoardContexts.ARCHIVE:
-      case BoardContexts.TRASH:
-        Content = EndlessContent;
+          break;
+        case BoardContexts.ARCHIVE:
+        case BoardContexts.TRASH:
+          Content = EndlessContent;
 
-        break;
-      default:
+          break;
+        default:
+      }
     }
   }
 
@@ -54,9 +63,15 @@ const Board = React.memo(() => {
 
   return (
     <>
-      <ShortcutsProvider>
-        <Content />
-      </ShortcutsProvider>
+      {isMetricsView ? (
+        <Suspense fallback={<Loader active inline="centered" />}>
+          <MetricsDashboard boardId={board.id} />
+        </Suspense>
+      ) : (
+        <ShortcutsProvider>
+          <Content />
+        </ShortcutsProvider>
+      )}
       {modalNode}
     </>
   );

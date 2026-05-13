@@ -462,6 +462,125 @@ export const selectIsCurrentUserInCurrentCard = createSelector(
   },
 );
 
+// SLA 진행률 계산: { ratio, color }
+export const makeSelectSlaProgress = () =>
+  createSelector(
+    orm,
+    (_, id) => id,
+    ({ Card }, id) => {
+      if (!id) {
+        return null;
+      }
+
+      const cardModel = Card.withId(id);
+
+      if (!cardModel) {
+        return null;
+      }
+
+      const { startDate, dueDate, createdAt } = cardModel.ref;
+
+      if (!dueDate) {
+        return null;
+      }
+
+      // Start 날짜 미설정 시 카드 생성일을 사용 (Requirement 4.5)
+      const start = new Date(startDate || createdAt);
+      const now = new Date();
+      const due = new Date(dueDate);
+      const totalDuration = due - start;
+
+      if (totalDuration <= 0) {
+        return { ratio: 1, color: 'red' };
+      }
+
+      const elapsed = now - start;
+      const ratio = Math.max(0, elapsed / totalDuration);
+
+      let color;
+      if (ratio <= 0.8) {
+        color = 'green';
+      } else if (ratio <= 1.0) {
+        color = 'orange';
+      } else {
+        color = 'red';
+      }
+
+      return { ratio: Math.round(ratio * 100) / 100, color };
+    },
+  );
+
+export const selectSlaProgress = makeSelectSlaProgress();
+
+// 티켓 나이 계산 (일수)
+export const makeSelectTicketAge = () =>
+  createSelector(
+    orm,
+    (_, id) => id,
+    ({ Card }, id) => {
+      if (!id) {
+        return 0;
+      }
+
+      const cardModel = Card.withId(id);
+
+      if (!cardModel) {
+        return 0;
+      }
+
+      const now = new Date();
+      const entryDate = new Date(cardModel.ref.startDate || cardModel.ref.createdAt);
+      const diffMs = now - entryDate;
+
+      return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+    },
+  );
+
+export const selectTicketAge = makeSelectTicketAge();
+
+// Pull 가능 카드 여부: 다음 컬럼에 빈 슬롯이 있는지
+export const makeSelectIsPullableCard = () =>
+  createSelector(
+    orm,
+    (_, id) => id,
+    ({ Card, Board }, id) => {
+      if (!id) {
+        return false;
+      }
+
+      const cardModel = Card.withId(id);
+
+      if (!cardModel) {
+        return false;
+      }
+
+      const boardModel = Board.withId(cardModel.boardId);
+
+      if (!boardModel) {
+        return false;
+      }
+
+      const lists = boardModel.lists.orderBy('position').toModelArray();
+      const currentListIndex = lists.findIndex((list) => list.id === cardModel.listId);
+
+      if (currentListIndex < 0 || currentListIndex >= lists.length - 1) {
+        return false;
+      }
+
+      const nextList = lists[currentListIndex + 1];
+      const { wipLimit: nextWipLimit } = nextList.ref;
+
+      if (nextWipLimit === null || nextWipLimit === undefined) {
+        return false;
+      }
+
+      const nextCardCount = nextList.cards.count();
+      return nextCardCount < nextWipLimit;
+    },
+  );
+
+export const selectIsPullableCard = makeSelectIsPullableCard();
+
 export default {
   makeSelectCardById,
   selectCardById,
@@ -495,4 +614,10 @@ export default {
   selectCommentIdsForCurrentCard,
   selectActivityIdsForCurrentCard,
   selectIsCurrentUserInCurrentCard,
+  makeSelectSlaProgress,
+  selectSlaProgress,
+  makeSelectTicketAge,
+  selectTicketAge,
+  makeSelectIsPullableCard,
+  selectIsPullableCard,
 };

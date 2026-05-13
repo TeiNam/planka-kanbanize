@@ -26,6 +26,14 @@ const handleLocationChange = (
   customFields,
   customFieldValues,
   notificationsToDelete,
+  swimLanes,
+  commitmentPoints,
+  classesOfService,
+  decorators,
+  cardDecorators,
+  blockers,
+  blockerLinkedCards,
+  cardRelationships,
 ) => ({
   type: ActionTypes.LOCATION_CHANGE_HANDLE,
   payload: {
@@ -49,6 +57,14 @@ const handleLocationChange = (
     customFields,
     customFieldValues,
     notificationsToDelete,
+    swimLanes,
+    commitmentPoints,
+    classesOfService,
+    decorators,
+    cardDecorators,
+    blockers,
+    blockerLinkedCards,
+    cardRelationships,
   },
 });
 

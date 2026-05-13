@@ -171,6 +171,10 @@ module.exports = {
     const customFields = await CustomField.qm.getByCustomFieldGroupIds(customFieldGroupIds);
     const customFieldValues = await CustomFieldValue.qm.getByCardId(card.id);
 
+    const blockers = await Blocker.qm.getByCardIds([card.id]);
+    const blockerIds = sails.helpers.utils.mapRecords(blockers);
+    const blockerLinkedCards = await BlockerLinkedCard.qm.getByBlockerIds(blockerIds);
+
     return {
       item: card,
       included: {
@@ -181,6 +185,8 @@ module.exports = {
         customFieldGroups,
         customFields,
         customFieldValues,
+        blockers,
+        blockerLinkedCards,
         users: sails.helpers.users.presentMany(users, currentUser),
         attachments: sails.helpers.attachments.presentMany(attachments),
       },

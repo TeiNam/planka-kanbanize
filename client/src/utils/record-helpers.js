@@ -4,7 +4,7 @@
  */
 
 import { StaticUserIds } from '../constants/StaticUsers';
-import { ListTypes, UserRoles } from '../constants/Enums';
+import { KanbanListTypes, ListTypes, UserRoles } from '../constants/Enums';
 
 export const isUserStatic = (user) => [StaticUserIds.DELETED].includes(user.id);
 
@@ -14,6 +14,6 @@ export const isUserAdminOrProjectOwner = (user) =>
 export const isListArchiveOrTrash = (list) =>
   [ListTypes.ARCHIVE, ListTypes.TRASH].includes(list.type);
 
-export const isListFinite = (list) => [ListTypes.ACTIVE, ListTypes.CLOSED].includes(list.type);
+export const isListFinite = (list) => KanbanListTypes.includes(list.type);
 
-export const isListKanban = (list) => [ListTypes.ACTIVE, ListTypes.CLOSED].includes(list.type);
+export const isListKanban = (list) => KanbanListTypes.includes(list.type);

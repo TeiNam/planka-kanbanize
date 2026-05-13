@@ -51,6 +51,7 @@ export const BoardViews = {
   KANBAN: 'kanban',
   GRID: 'grid',
   LIST: 'list',
+  METRICS: 'metrics',
 };
 
 export const BoardContexts = {
@@ -65,11 +66,24 @@ export const BoardMembershipRoles = {
 };
 
 export const ListTypes = {
-  ACTIVE: 'active',
+  BACKLOG: 'backlog',
+  TASK: 'task',
   CLOSED: 'closed',
+  DISCARD: 'discard',
   ARCHIVE: 'archive',
   TRASH: 'trash',
 };
+
+// 보드 본문에 표시되는 일반 칸반 컬럼들
+export const KanbanListTypes = [
+  ListTypes.BACKLOG,
+  ListTypes.TASK,
+  ListTypes.CLOSED,
+  ListTypes.DISCARD,
+];
+
+// WIP 카운트 대상 (태스크 컬럼만)
+export const WipCountListTypes = [ListTypes.TASK];
 
 export const ListTypeStates = {
   OPENED: 'opened',

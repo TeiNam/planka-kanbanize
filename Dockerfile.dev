@@ -1,6 +1,13 @@
 FROM node:22-alpine
 
 RUN apk -U upgrade \
-  && apk add bash build-base python3 xdg-utils --no-cache
+  && apk add bash build-base python3 py3-pip py3-virtualenv xdg-utils --no-cache \
+  && ln -sf /usr/bin/python3 /usr/bin/python
 
 WORKDIR /app
+
+# 이미지 빌드 시점에 venv를 /app/.venv 로 직접 생성.
+# docker-compose-dev.yml에서 /app/.venv를 anonymous volume으로 선언해
+# 호스트의 ./server 마운트가 이 디렉토리를 덮어쓰지 않도록 보호한다.
+RUN python3 -m venv --copies /app/.venv \
+  && /app/.venv/bin/pip install --no-cache-dir apprise==1.9.7

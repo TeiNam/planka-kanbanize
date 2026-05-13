@@ -26,6 +26,10 @@ module.exports = {
     },
   },
 
+  exits: {
+    wipLimitSumExceedsSystemLimit: {},
+  },
+
   async fn(inputs) {
     const { isSubscribed, ...values } = inputs.values;
 
@@ -81,6 +85,21 @@ module.exports = {
 
             // TODO: send webhooks
           }
+        }
+      }
+
+      // systemWipLimit을 설정/감소할 때, 기존 task 컬럼들 wipLimit 합이 초과하면 거부
+      if (
+        !_.isUndefined(values.systemWipLimit) &&
+        values.systemWipLimit !== null &&
+        values.systemWipLimit !== undefined
+      ) {
+        const sum = await sails.helpers.lists.getTaskWipLimitSum.with({
+          boardId: inputs.record.id,
+          excludeListId: null,
+        });
+        if (sum > values.systemWipLimit) {
+          throw 'wipLimitSumExceedsSystemLimit';
         }
       }
 

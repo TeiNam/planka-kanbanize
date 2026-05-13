@@ -21,8 +21,44 @@ import TimeAgo from '../../common/TimeAgo';
 import UserAvatar from '../../users/UserAvatar';
 import LabelChip from '../../labels/LabelChip';
 import CustomFieldValueChip from '../../custom-field-values/CustomFieldValueChip';
+import CardBlockerBadge from '../CardBlockerBadge';
+import CardSlaBar from '../CardSlaBar';
+import CardPriority from '../CardPriority';
+import CardClassOfServiceStripe from '../../classes-of-service/CardClassOfServiceStripe';
 
 import styles from './ProjectContent.module.scss';
+
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+const formatShortDate = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+};
+
+const daysUntil = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return Math.ceil((d.getTime() - Date.now()) / MS_PER_DAY);
+};
+
+const formatDueCountdown = (days) => {
+  if (days === null || days === undefined) return '';
+  if (days === 0) return 'D-Day';
+  if (days < 0) return `D+${-days}`;
+  return `D-${days}`;
+};
+
+const leadtimeDays = (startIso, endIso) => {
+  if (!endIso) return null;
+  const start = new Date(startIso);
+  const end = new Date(endIso);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+  const diff = Math.ceil((end.getTime() - start.getTime()) / MS_PER_DAY);
+  return Math.max(0, diff);
+};
 
 const ProjectContent = React.memo(({ cardId }) => {
   const selectCardById = useMemo(() => selectors.makeSelectCardById(), []);
@@ -52,8 +88,13 @@ const ProjectContent = React.memo(({ cardId }) => {
 
   const selectAttachmentById = useMemo(() => selectors.makeSelectAttachmentById(), []);
 
+  const selectParentListById = useMemo(() => selectors.makeSelectListById(), []);
   const card = useSelector((state) => selectCardById(state, cardId));
   const list = useSelector((state) => selectListById(state, card.listId));
+  const parentList = useSelector((state) =>
+    list && list.parentListId ? selectParentListById(state, list.parentListId) : null,
+  );
+  const effectiveListType = parentList ? parentList.type : list && list.type;
   const userIds = useSelector((state) => selectUserIdsByCardId(state, cardId));
   const labelIds = useSelector((state) => selectLabelIdsByCardId(state, cardId));
 
@@ -76,13 +117,12 @@ const ProjectContent = React.memo(({ cardId }) => {
     return attachment && attachment.data.thumbnailUrls.outside360;
   });
 
-  const { listName, withCreator, withAge } = useSelector((state) => {
+  const { listName, withCreator } = useSelector((state) => {
     const board = selectors.selectCurrentBoard(state);
 
     return {
       listName: list.name && (board.view === BoardViews.KANBAN ? null : list.name),
       withCreator: board.alwaysDisplayCardCreator,
-      withAge: board.displayCardAges,
     };
   }, shallowEqual);
 
@@ -112,145 +152,240 @@ const ProjectContent = React.memo(({ cardId }) => {
     [cardId, card.stopwatch, dispatch],
   );
 
+  const createdShort = formatShortDate(card.createdAt);
+  const dueShort = formatShortDate(card.dueDate);
+  const startShort = formatShortDate(card.startDate);
+  const completedShort = formatShortDate(card.completedAt);
+  const dueDays = daysUntil(card.dueDate);
+  const leadtime = leadtimeDays(card.startDate || card.createdAt, card.completedAt);
+
+  // 설명/댓글 아이콘은 멤버 바로 아래 줄로 분리. 나머지(시계/리스트명/첨부)만 attachments 줄에 둔다.
+  const hasIndicators = card.description || card.commentsTotal > 0;
+
   const hasInformation =
-    card.description ||
-    card.dueDate ||
-    card.stopwatch ||
-    card.commentsTotal > 0 ||
-    withAge ||
-    attachmentsTotal > 0 ||
-    notificationsTotal > 0 ||
-    listName;
+    card.stopwatch || attachmentsTotal > 0 || notificationsTotal > 0 || listName;
 
-  const isCompact =
-    (labelIds.length === 0 || customFieldValueIds.length === 0) &&
-    taskListIds.length === 0 &&
-    !hasInformation;
+  const isTaskList = effectiveListType === 'task';
+  const hasDateRow =
+    (isTaskList ? startShort || createdShort : createdShort || startShort) ||
+    dueShort ||
+    completedShort;
 
-  const usersNode =
-    userIds.length > 0 || withCreator ? (
-      <span className={classNames(styles.attachments, styles.attachmentsRight)}>
-        {withCreator && (
-          <>
-            <span className={classNames(styles.attachment, styles.attachmentRight)}>
-              <UserAvatar withCreatorIndicator id={card.creatorUserId} size="small" />
-            </span>
-            {userIds.length > 0 && <span className={styles.creatorDivider} />}
-          </>
-        )}
-        {userIds.map((userId) => (
-          <span key={userId} className={classNames(styles.attachment, styles.attachmentRight)}>
-            <UserAvatar id={userId} size="small" />
-          </span>
+  // 생성자: 보드 설정이 켜져있으면 좌측 상단(타이틀 줄)
+  const creatorNode = withCreator ? (
+    <span className={styles.creator}>
+      <UserAvatar withCreatorIndicator id={card.creatorUserId} size="tiny" />
+    </span>
+  ) : null;
+
+  // 멤버: 카드 하단 우측 정렬
+  const membersNode =
+    userIds.length > 0 ? (
+      <span className={styles.members}>
+        {userIds.slice(0, 3).map((userId) => (
+          <UserAvatar key={userId} id={userId} size="tiny" />
         ))}
+        {userIds.length > 3 && (
+          <span className={styles.membersMore}>{`+${userIds.length - 3}`}</span>
+        )}
       </span>
     ) : null;
 
   return (
-    <div className={styles.wrapper}>
-      <div className={classNames(styles.name, card.isClosed && styles.nameClosed)}>{card.name}</div>
+    <>
+      <CardClassOfServiceStripe classOfServiceId={card.classOfServiceId} />
       {coverUrl && (
         <div className={styles.coverWrapper}>
           <img src={coverUrl} alt="" className={styles.cover} />
         </div>
       )}
-      {labelIds.length > 0 && (
-        <span className={classNames(styles.labels, !isCompact && styles.labelsFull)}>
-          {labelIds.map((labelId) => (
-            <span key={labelId} className={classNames(styles.attachment, styles.attachmentLeft)}>
-              <LabelChip id={labelId} size="tiny" />
-            </span>
-          ))}
+      <div className={styles.wrapper}>
+        {card.id && (
+          <div className={styles.trackingId}>{`#${String(card.id).slice(-6)}`}</div>
+        )}
+        <div className={styles.titleRow}>
+          {creatorNode}
+          <div className={classNames(styles.name, card.isClosed && styles.nameClosed)}>
+            {card.name}
+          </div>
+          <span className={styles.titleRowRight}>
+            <CardPriority priority={card.priority} />
+          </span>
+        </div>
+        {labelIds.length > 0 && (
+          <span className={styles.labels}>
+            {labelIds.map((labelId) => (
+              <span key={labelId} className={classNames(styles.attachment, styles.attachmentLeft)}>
+                <LabelChip id={labelId} size="tiny" />
+              </span>
+            ))}
+          </span>
+        )}
+        {customFieldValueIds.length > 0 && (
+          <span className={styles.labels}>
+            {customFieldValueIds.map((customFieldValueId) => (
+              <span
+                key={customFieldValueId}
+                className={classNames(styles.attachment, styles.attachmentLeft)}
+              >
+                <CustomFieldValueChip id={customFieldValueId} size="tiny" />
+              </span>
+            ))}
+          </span>
+        )}
+        {taskListIds.map((taskListId) => (
+          <TaskList key={taskListId} id={taskListId} />
+        ))}
+
+        {hasDateRow && (
+          <div className={styles.dates}>
+            {/* task 컬럼 카드는 생성일 대신 시작일 표시. 시작일이 없으면 생성일 fallback. */}
+            {isTaskList ? (
+              startShort ? (
+                <div className={styles.dateLine}>
+                  <Icon name="play" />
+                  <span className={styles.dateLabel}>시작일:</span>
+                  <span className={styles.dateValue}>{startShort}</span>
+                  {card.startDate && (
+                    <span className={styles.dateAge}>
+                      <Icon name="history" className={styles.dateAgeIcon} />
+                      <TimeAgo date={new Date(card.startDate)} />
+                    </span>
+                  )}
+                </div>
+              ) : (
+                createdShort && (
+                  <div className={styles.dateLine}>
+                    <Icon name="calendar outline" />
+                    <span className={styles.dateLabel}>생성일:</span>
+                    <span className={styles.dateValue}>{createdShort}</span>
+                    {card.createdAt && (
+                      <span className={styles.dateAge}>
+                        <Icon name="history" className={styles.dateAgeIcon} />
+                        <TimeAgo date={new Date(card.createdAt)} />
+                      </span>
+                    )}
+                  </div>
+                )
+              )
+            ) : (
+              <>
+                {createdShort && (
+                  <div className={styles.dateLine}>
+                    <Icon name="calendar outline" />
+                    <span className={styles.dateLabel}>생성일:</span>
+                    <span className={styles.dateValue}>{createdShort}</span>
+                    {card.createdAt && (
+                      <span className={styles.dateAge}>
+                        <Icon name="history" className={styles.dateAgeIcon} />
+                        <TimeAgo date={new Date(card.createdAt)} />
+                      </span>
+                    )}
+                  </div>
+                )}
+                {startShort && (
+                  <div className={styles.dateLine}>
+                    <Icon name="play" />
+                    <span className={styles.dateLabel}>시작일:</span>
+                    <span className={styles.dateValue}>{startShort}</span>
+                  </div>
+                )}
+              </>
+            )}
+            {card.dueDate && (
+              <div className={styles.dateLine}>
+                <Icon name="calendar alternate outline" />
+                <span className={styles.dateLabel}>마감일:</span>
+                <span className={styles.dateValue}>{dueShort}</span>
+                {dueDays !== null && (
+                  <span
+                    className={classNames(
+                      styles.dateAge,
+                      dueDays < 0 && styles.dateAgeOverdue,
+                    )}
+                  >
+                    ({formatDueCountdown(dueDays)})
+                  </span>
+                )}
+              </div>
+            )}
+            {completedShort && (
+              <div className={styles.dateLine}>
+                <Icon name={effectiveListType === 'discard' ? 'trash alternate outline' : 'check'} />
+                <span className={styles.dateLabel}>
+                  {effectiveListType === 'discard' ? '폐기일:' : '완료일:'}
+                </span>
+                <span className={styles.dateValue}>{completedShort}</span>
+                {leadtime !== null && (
+                  <span className={styles.dateAge}>(Leadtime: {leadtime}일)</span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        <CardSlaBar cardId={cardId} />
+
+        {hasInformation && (
+          <span className={styles.attachments}>
+            {notificationsTotal > 0 && (
+              <span
+                className={classNames(styles.attachment, styles.attachmentLeft, styles.notification)}
+              >
+                {notificationsTotal}
+              </span>
+            )}
+            {card.stopwatch && (
+              <span className={classNames(styles.attachment, styles.attachmentLeft)}>
+                <StopwatchChip
+                  value={card.stopwatch}
+                  as="span"
+                  size="tiny"
+                  onClick={canEditStopwatch ? handleToggleStopwatchClick : undefined}
+                />
+              </span>
+            )}
+            {listName && (
+              <span className={classNames(styles.attachment, styles.attachmentLeft)}>
+                <span className={styles.attachmentContent}>
+                  <Icon name="columns" />
+                  {listName}
+                </span>
+              </span>
+            )}
+            {attachmentsTotal > 0 && (
+              <span className={classNames(styles.attachment, styles.attachmentLeft)}>
+                <span className={styles.attachmentContent}>
+                  <Icon name="attach" />
+                  {attachmentsTotal}
+                </span>
+              </span>
+            )}
+          </span>
+        )}
+        <span className={styles.badges}>
+          <CardBlockerBadge cardId={cardId} />
         </span>
-      )}
-      {customFieldValueIds.length > 0 && (
-        <span className={classNames(styles.labels, !isCompact && styles.labelsFull)}>
-          {customFieldValueIds.map((customFieldValueId) => (
-            <span
-              key={customFieldValueId}
-              className={classNames(styles.attachment, styles.attachmentLeft)}
-            >
-              <CustomFieldValueChip id={customFieldValueId} size="tiny" />
-            </span>
-          ))}
-        </span>
-      )}
-      {isCompact && usersNode}
-      {taskListIds.map((taskListId) => (
-        <TaskList key={taskListId} id={taskListId} />
-      ))}
-      {hasInformation && (
-        <span className={styles.attachments}>
-          {notificationsTotal > 0 && (
-            <span
-              className={classNames(styles.attachment, styles.attachmentLeft, styles.notification)}
-            >
-              {notificationsTotal}
-            </span>
-          )}
-          {card.dueDate && (
-            <span className={classNames(styles.attachment, styles.attachmentLeft)}>
-              <DueDateChip
-                value={card.dueDate}
-                size="tiny"
-                isCompleted={card.isDueCompleted}
-                withStatus={!card.isClosed}
-              />
-            </span>
-          )}
-          {card.stopwatch && (
-            <span className={classNames(styles.attachment, styles.attachmentLeft)}>
-              <StopwatchChip
-                value={card.stopwatch}
-                as="span"
-                size="tiny"
-                onClick={canEditStopwatch ? handleToggleStopwatchClick : undefined}
-              />
-            </span>
-          )}
-          {listName && (
-            <span className={classNames(styles.attachment, styles.attachmentLeft)}>
-              <span className={styles.attachmentContent}>
-                <Icon name="columns" />
-                {listName}
-              </span>
-            </span>
-          )}
-          {card.description && (
-            <span className={classNames(styles.attachment, styles.attachmentLeft)}>
-              <span className={styles.attachmentContent}>
-                <Icon name="align left" />
-              </span>
-            </span>
-          )}
-          {attachmentsTotal > 0 && (
-            <span className={classNames(styles.attachment, styles.attachmentLeft)}>
-              <span className={styles.attachmentContent}>
-                <Icon name="attach" />
-                {attachmentsTotal}
-              </span>
-            </span>
-          )}
-          {card.commentsTotal > 0 && (
-            <span className={classNames(styles.attachment, styles.attachmentLeft)}>
-              <span className={styles.attachmentContent}>
-                <Icon name="comment outline" />
-                {card.commentsTotal}
-              </span>
-            </span>
-          )}
-          {withAge && card.createdAt && (
-            <span className={classNames(styles.attachment, styles.attachmentLeft)}>
-              <span className={styles.attachmentContent}>
-                <Icon name="history" />
-                <TimeAgo date={card.createdAt} />
-              </span>
-            </span>
-          )}
-        </span>
-      )}
-      {!isCompact && usersNode}
-    </div>
+        {(hasIndicators || membersNode) && (
+          <div className={styles.bottomRow}>
+            <div className={styles.bottomIndicators}>
+              {card.description && (
+                <span className={styles.indicator} title="설명 있음">
+                  <Icon name="align left" />
+                </span>
+              )}
+              {card.commentsTotal > 0 && (
+                <span className={styles.indicator} title="댓글">
+                  <Icon name="comment outline" />
+                  {card.commentsTotal}
+                </span>
+              )}
+            </div>
+            {membersNode}
+          </div>
+        )}
+      </div>
+    </>
   );
 });
 

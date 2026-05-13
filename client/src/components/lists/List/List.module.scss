@@ -93,6 +93,8 @@
   }
 
   .header {
+    align-items: center;
+    display: flex;
     outline: none;
     padding: 6px 36px 6px 8px;
     position: relative;
@@ -143,6 +145,7 @@
     font-weight: bold;
     line-height: 20px;
     max-height: 256px;
+    min-width: 0;
     outline: none;
     overflow: hidden;
     overflow-wrap: break-word;
@@ -155,9 +158,35 @@
     margin-right: 6px;
   }
 
+  .headerWipLimit {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    margin-right: auto;
+  }
+
   .innerWrapper {
     margin-right: 8px;
     width: 272px;
+  }
+
+  // sub-column 사용 시 부모 list 너비:
+  // 좌 padding 8 + 카드 256 + 사이 gap 8 + 카드 256 + 우 padding 8 = 536px
+  .innerWrapper.innerWrapperWithSubColumns {
+    width: 536px;
+
+    .cardsInnerWrapper {
+      width: 100%;
+
+      &:hover {
+        width: 100%;
+      }
+    }
+
+    .cardsOuterWrapper {
+      padding: 0;
+      width: 100%;
+    }
   }
 
   .outerWrapper {
@@ -167,6 +196,85 @@
     flex-direction: column;
     max-height: calc(100vh - 198px);
     overflow: hidden;
+  }
+
+  .outerWrapperBuffer {
+    border: 2px dashed #b3bac5;
+    background: #f4f5f7;
+  }
+
+  .outerWrapperBacklog {
+    background: #e9eff4;
+    border-left: 3px solid #5e81ac;
+  }
+
+  .outerWrapperClosed {
+    background: #e3f1e2;
+    border-left: 3px solid #4caf50;
+  }
+
+  .outerWrapperDiscard {
+    background: #f4e6e2;
+    border-left: 3px solid #b0998a;
+  }
+
+  .subColumnsContainer {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .subColumnDivider {
+    background-color: rgba(9, 30, 66, 0.13);
+    flex-shrink: 0;
+    width: 1px;
+  }
+
+  // subColumns 컨테이너에 좌·우 외곽 padding 8 + 두 sub-column 사이 gap 8.
+  // 합계: 8 + 256 + 8(gap) + 256 + 8 = 536px → 부모 innerWrapperWithSubColumns와 일치.
+  .subColumns {
+    box-sizing: border-box;
+    display: flex;
+    gap: 8px;
+    padding: 0 8px;
+    width: 100%;
+  }
+
+  .subColumn {
+    box-sizing: border-box;
+    display: flex;
+    flex: 0 0 256px;
+    flex-direction: column;
+    min-width: 0;
+    width: 256px;
+
+    .cards {
+      width: 100%;
+    }
+  }
+
+  .subColumnHeader {
+    color: #6a808b;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    padding: 4px 8px 2px;
+    text-transform: uppercase;
+  }
+
+  .subColumnHeaderDone {
+    color: #4caf50;
+  }
+
+  .subColumnCount {
+    background: rgba(9, 30, 66, 0.08);
+    border-radius: 8px;
+    color: #5e6c84;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+    padding: 0 6px;
   }
 
   .outerWrapperTransitioning {

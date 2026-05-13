@@ -1,0 +1,19 @@
+{
+  "name": "Diagnostics After Code Edit",
+  "version": "1.0.0",
+  "description": "코드 파일 편집 후 컴파일/린트/타입 에러를 검사합니다",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.js",
+      "*.jsx",
+      "*.mjs",
+      "*.scss",
+      "*.css"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A code file was edited. Use getDiagnostics to check for compile errors, lint errors, and type errors. Report any issues found concisely. Do NOT use executeBash or terminal."
+  }
+}

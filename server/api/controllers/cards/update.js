@@ -145,6 +145,18 @@ const Errors = {
   POSITION_MUST_BE_PRESENT: {
     positionMustBePresent: 'Position must be present',
   },
+  DUE_DATE_REQUIRED: {
+    dueDateRequired: 'Due date is required for Fixed Date class of service',
+  },
+  WIP_LIMIT_EXCEEDED: {
+    wipLimitExceeded: 'Target column WIP limit would be exceeded',
+  },
+  SYSTEM_WIP_LIMIT_EXCEEDED: {
+    systemWipLimitExceeded: 'Total WIP limit would be exceeded',
+  },
+  CARD_HAS_ACTIVE_BLOCKERS: {
+    cardHasActiveBlockers: 'Card has active blockers and cannot be moved',
+  },
 };
 
 module.exports = {
@@ -195,6 +207,22 @@ module.exports = {
     isSubscribed: {
       type: 'boolean',
     },
+    classOfServiceId: {
+      ...idInput,
+      allowNull: true,
+    },
+    priority: {
+      type: 'string',
+      isIn: ['H', 'M', 'L'],
+      allowNull: true,
+    },
+    startDate: {
+      type: 'ref',
+    },
+    swimLaneId: {
+      ...idInput,
+      allowNull: true,
+    },
   },
 
   exits: {
@@ -220,6 +248,18 @@ module.exports = {
       responseType: 'unprocessableEntity',
     },
     positionMustBePresent: {
+      responseType: 'unprocessableEntity',
+    },
+    dueDateRequired: {
+      responseType: 'unprocessableEntity',
+    },
+    wipLimitExceeded: {
+      responseType: 'unprocessableEntity',
+    },
+    systemWipLimitExceeded: {
+      responseType: 'unprocessableEntity',
+    },
+    cardHasActiveBlockers: {
       responseType: 'unprocessableEntity',
     },
   },
@@ -256,6 +296,10 @@ module.exports = {
         'dueDate',
         'isDueCompleted',
         'stopwatch',
+        'classOfServiceId',
+        'priority',
+        'startDate',
+        'swimLaneId',
       );
     }
 
@@ -317,6 +361,10 @@ module.exports = {
       'isDueCompleted',
       'stopwatch',
       'isSubscribed',
+      'classOfServiceId',
+      'priority',
+      'startDate',
+      'swimLaneId',
     ]);
 
     card = await sails.helpers.cards.updateOne
@@ -340,7 +388,11 @@ module.exports = {
       .intercept(
         'coverAttachmentInValuesMustContainImage',
         () => Errors.COVER_ATTACHMENT_MUST_CONTAIN_IMAGE,
-      );
+      )
+      .intercept('dueDateRequired', () => Errors.DUE_DATE_REQUIRED)
+      .intercept('wipLimitExceeded', () => Errors.WIP_LIMIT_EXCEEDED)
+      .intercept('systemWipLimitExceeded', () => Errors.SYSTEM_WIP_LIMIT_EXCEEDED)
+      .intercept('cardHasActiveBlockers', () => Errors.CARD_HAS_ACTIVE_BLOCKERS);
 
     if (!card) {
       throw Errors.CARD_NOT_FOUND;

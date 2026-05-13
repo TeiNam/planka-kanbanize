@@ -63,6 +63,13 @@
  *                 type: boolean
  *                 description: Whether to expand task lists by default
  *                 example: false
+ *               systemWipLimit:
+ *                 type: integer
+ *                 nullable: true
+ *                 minimum: 1
+ *                 maximum: 100
+ *                 description: System-level WIP limit for the entire board (null = no limit)
+ *                 example: 24
  *               isSubscribed:
  *                 type: boolean
  *                 description: Whether the current user is subscribed to the board
@@ -92,6 +99,12 @@ const { idInput } = require('../../../utils/inputs');
 const Errors = {
   BOARD_NOT_FOUND: {
     boardNotFound: 'Board not found',
+  },
+  NOT_ENOUGH_RIGHTS: {
+    notEnoughRights: 'Not enough rights',
+  },
+  WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT: {
+    wipLimitSumExceedsSystemLimit: 'Existing column WIP limits sum exceeds new Total WIP limit',
   },
 };
 
@@ -130,6 +143,16 @@ module.exports = {
     expandTaskListsByDefault: {
       type: 'boolean',
     },
+    systemWipLimit: {
+      type: 'number',
+      allowNull: true,
+      min: 1,
+      max: 1000,
+    },
+    wipLimitMode: {
+      type: 'string',
+      isIn: Object.values(Board.WipLimitModes),
+    },
     isSubscribed: {
       type: 'boolean',
     },
@@ -138,6 +161,12 @@ module.exports = {
   exits: {
     boardNotFound: {
       responseType: 'notFound',
+    },
+    notEnoughRights: {
+      responseType: 'forbidden',
+    },
+    wipLimitSumExceedsSystemLimit: {
+      responseType: 'unprocessableEntity',
     },
   },
 
@@ -169,6 +198,8 @@ module.exports = {
         'alwaysDisplayCardCreator',
         'displayCardAges',
         'expandTaskListsByDefault',
+        'systemWipLimit',
+        'wipLimitMode',
       );
     }
     if (isBoardMember) {
@@ -188,16 +219,23 @@ module.exports = {
       'alwaysDisplayCardCreator',
       'displayCardAges',
       'expandTaskListsByDefault',
+      'systemWipLimit',
+      'wipLimitMode',
       'isSubscribed',
     ]);
 
-    board = await sails.helpers.boards.updateOne.with({
-      values,
-      project,
-      record: board,
-      actorUser: currentUser,
-      request: this.req,
-    });
+    board = await sails.helpers.boards.updateOne
+      .with({
+        values,
+        project,
+        record: board,
+        actorUser: currentUser,
+        request: this.req,
+      })
+      .intercept(
+        'wipLimitSumExceedsSystemLimit',
+        () => Errors.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT,
+      );
 
     if (!board) {
       throw Errors.BOARD_NOT_FOUND;

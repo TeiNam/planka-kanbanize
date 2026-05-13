@@ -46,7 +46,7 @@ module.exports = {
       openedTrelloLists.map(async (trelloList) => {
         const { id } = await List.qm.createOne({
           boardId: inputs.board.id,
-          type: List.Types.ACTIVE,
+          type: List.Types.TASK,
           position: trelloList.pos,
           name: trelloList.name,
         });

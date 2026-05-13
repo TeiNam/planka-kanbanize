@@ -43,6 +43,10 @@ module.exports = {
     listMustBeInValues: {},
     listInValuesMustBelongToBoard: {},
     coverAttachmentInValuesMustContainImage: {},
+    dueDateRequired: {},
+    wipLimitExceeded: {},
+    systemWipLimitExceeded: {},
+    cardHasActiveBlockers: {},
   },
 
   // TODO: use normalizeValues and refactor
@@ -93,6 +97,109 @@ module.exports = {
       values.position = null;
     }
 
+    // 활성 블로커가 1개 이상 있는 카드는 다른 목록으로 이동할 수 없다.
+    // 같은 목록 내 재정렬(values.list 없음)은 허용.
+    if (values.list) {
+      const activeBlockers = await Blocker.find({
+        cardId: inputs.record.id,
+        status: 'active',
+      });
+      if (activeBlockers.length > 0) {
+        throw 'cardHasActiveBlockers';
+      }
+    }
+
+    // WIP 한도 검증 (block 모드일 때만 차단)
+    //  - 컬럼 wipLimit 초과: 부모 wipLimit + (부모 자체 + 모든 자식) 카드 합산
+    //  - systemWipLimit 초과: 부모와 그 자식 list 카드 모두 카운트
+    if (
+      board.wipLimitMode === Board.WipLimitModes.BLOCK &&
+      values.list &&
+      list.type === List.Types.TASK
+    ) {
+      const sourceList = inputs.list;
+      const isSameBoard = !values.board;
+
+      // 효과적 부모 list 결정 (sub-column이면 그 부모를 lookup)
+      let targetParent = list;
+      if (list.parentListId) {
+        targetParent = await List.qm.getOneById(list.parentListId);
+      }
+      let sourceParent = sourceList;
+      if (sourceList && sourceList.parentListId) {
+        sourceParent = await List.qm.getOneById(sourceList.parentListId);
+      }
+
+      const targetIsLimited =
+        targetParent &&
+        targetParent.wipLimit !== null &&
+        targetParent.wipLimit !== undefined;
+      const sourceIsLimited =
+        isSameBoard &&
+        sourceParent &&
+        sourceParent.type === List.Types.TASK &&
+        sourceParent.wipLimit !== null &&
+        sourceParent.wipLimit !== undefined;
+      const sameParent =
+        targetParent && sourceParent && targetParent.id === sourceParent.id;
+
+      // 1) 대상 컬럼 자체 WIP 검증 (부모 + 자식 합산)
+      if (targetIsLimited && !sameParent) {
+        // 부모 + 자식 list IDs
+        const targetListIds = [targetParent.id];
+        const targetChildren = await List.find({ parentListId: targetParent.id });
+        targetChildren.forEach((c) => targetListIds.push(c.id));
+
+        const currentCount = await Card.count({
+          listId: targetListIds,
+          position: { '!=': null },
+        });
+        if (currentCount + 1 > targetParent.wipLimit) {
+          throw 'wipLimitExceeded';
+        }
+      }
+
+      // 2) systemWipLimit 검증
+      if (
+        targetIsLimited &&
+        board.systemWipLimit !== null &&
+        board.systemWipLimit !== undefined
+      ) {
+        const allLists = await List.qm.getByBoardId(board.id);
+        const limitedParentIds = allLists
+          .filter(
+            (l) =>
+              l.type === List.Types.TASK &&
+              !l.parentListId &&
+              l.wipLimit !== null &&
+              l.wipLimit !== undefined,
+          )
+          .map((l) => l.id);
+
+        // 부모 + 자식 list IDs 모두
+        const includedListIds = [];
+        allLists.forEach((l) => {
+          if (limitedParentIds.includes(l.id)) {
+            includedListIds.push(l.id);
+          } else if (l.parentListId && limitedParentIds.includes(l.parentListId)) {
+            includedListIds.push(l.id);
+          }
+        });
+
+        if (includedListIds.length > 0) {
+          const totalCount = await Card.count({
+            listId: includedListIds,
+            position: { '!=': null },
+          });
+          const projected = sourceIsLimited && !sameParent ? totalCount : totalCount + 1;
+          const adjusted = sameParent ? totalCount : projected;
+          if (adjusted > board.systemWipLimit) {
+            throw 'systemWipLimitExceeded';
+          }
+        }
+      }
+    }
+
     if (values.coverAttachment) {
       if (!values.coverAttachment.data.image) {
         throw 'coverAttachmentInValuesMustContainImage';
@@ -106,6 +213,44 @@ module.exports = {
     }
 
     const dueDate = _.isUndefined(values.dueDate) ? inputs.record.dueDate : values.dueDate;
+
+    // classOfServiceId 설정 시 Expedite 최상단 배치 및 Fixed Date dueDate 검증
+    if (!_.isUndefined(values.classOfServiceId) && values.classOfServiceId) {
+      const classOfService = await ClassOfService.qm.getOneById(values.classOfServiceId);
+
+      if (classOfService) {
+        if (classOfService.type === ClassOfService.Types.FIXED_DATE) {
+          if (!dueDate) {
+            throw 'dueDateRequired';
+          }
+        }
+
+        if (classOfService.type === ClassOfService.Types.EXPEDITE) {
+          // 동일 Swim Lane 내 기존 Expedite 카드들 바로 뒤에 배치하여
+          // 할당 시각이 빠른 순서로 자연스럽게 정렬되도록 한다.
+          const swimLaneId = _.isUndefined(values.swimLaneId)
+            ? inputs.record.swimLaneId
+            : values.swimLaneId;
+
+          const expediteClasses = await ClassOfService.qm.getByBoardId(board.id);
+          const expediteClassIds = expediteClasses
+            .filter((cos) => cos.type === ClassOfService.Types.EXPEDITE)
+            .map((cos) => cos.id);
+
+          const targetListCards = await Card.qm.getByListId(list.id, {
+            exceptIdOrIds: inputs.record.id,
+          });
+
+          const existingExpediteCount = targetListCards.filter(
+            (c) =>
+              expediteClassIds.includes(c.classOfServiceId) &&
+              (c.swimLaneId || null) === (swimLaneId || null),
+          ).length;
+
+          values.position = existingExpediteCount;
+        }
+      }
+    }
 
     if (dueDate) {
       const isDueCompleted = _.isUndefined(values.isDueCompleted)
@@ -229,6 +374,35 @@ module.exports = {
         }
 
         values.listChangedAt = new Date().toISOString();
+
+        // completedAt / startDate 자동 계산을 메인 update에 합쳐 한 번에 반영.
+        // (분리해서 후속 update를 하면 클라이언트의 updateCard.success가 stale한
+        // 응답으로 카드를 덮어써 보드 즉시 반영이 깨진다.)
+        const isTerminal = (l) =>
+          l && (l.type === List.Types.CLOSED ||
+            l.type === List.Types.DISCARD ||
+            l.subColumnType === 'done');
+        const fromTerminal = isTerminal(inputs.list);
+        const toTerminal = isTerminal(values.list);
+
+        if (toTerminal && !fromTerminal) {
+          values.completedAt = new Date().toISOString();
+        } else if (!toTerminal && fromTerminal) {
+          values.completedAt = null;
+        }
+
+        // startDate: 어떤 경로든 task 컬럼에 "처음" 진입할 때 set.
+        // sub-column이면 부모 list type을 기준. 한 번 set되면 보존.
+        if (!inputs.record.startDate) {
+          let effectiveToType = values.list.type;
+          if (values.list.parentListId) {
+            const parent = await List.qm.getOneById(values.list.parentListId);
+            if (parent) effectiveToType = parent.type;
+          }
+          if (effectiveToType === List.Types.TASK) {
+            values.startDate = new Date().toISOString();
+          }
+        }
       }
 
       const updateResult = await Card.qm.updateOne(inputs.record.id, values);
@@ -330,6 +504,37 @@ module.exports = {
             board: inputs.board,
             list: values.list,
           });
+
+          // 카드 이동 이력 기록 및 WIP 초과 여부 확인
+          await sails.helpers.cards.recordMovement.with({
+            card,
+            board,
+            fromList: inputs.list,
+            toList: values.list,
+            user: inputs.actorUser,
+          });
+
+          // Commitment Point 경계 통과 감지 및 기록 (CP 등록된 보드에서 추가 동작)
+          await sails.helpers.cards.detectCommitmentPointCrossing.with({
+            card,
+            board,
+            fromList: inputs.list,
+            toList: values.list,
+          });
+
+          // completedAt 변경 감지 시 블로커 자동 해결 트리거
+          if (card.completedAt !== inputs.record.completedAt) {
+            await sails.helpers.blockers.autoResolve.with({
+              card,
+              board,
+              request: inputs.request,
+            });
+          }
+
+          // wipExceeded broadcast 제거: 클라이언트가 자체 셀렉터(makeSelectWipCount)로
+          // 컬럼 카드 수 vs list.wipLimit을 비교하므로 별도 알림 불필요.
+          // 과거 broadcast는 payload.card에 listId/boardId가 없어 ORM upsert가 카드 상태를 손상시켜
+          // 보드 렌더링이 깨지는 문제가 있었다.
         }
       }
 

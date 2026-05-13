@@ -3,7 +3,7 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
@@ -14,9 +14,10 @@ import selectors from '../../../../selectors';
 import entryActions from '../../../../entry-actions';
 import parseDndId from '../../../../utils/parse-dnd-id';
 import DroppableTypes from '../../../../constants/DroppableTypes';
-import { BoardMembershipRoles } from '../../../../constants/Enums';
+import { BoardMembershipRoles, ListTypes } from '../../../../constants/Enums';
 import AddList from './AddList';
 import List from '../../../lists/List';
+import BoardSummaryBar from '../BoardSummaryBar';
 import PlusMathIcon from '../../../../assets/images/plus-math-icon.svg?react';
 
 import styles from './KanbanContent.module.scss';
@@ -24,6 +25,16 @@ import globalStyles from '../../../../styles.module.scss';
 
 const KanbanContent = React.memo(() => {
   const listIds = useSelector(selectors.selectKanbanListIdsForCurrentBoard);
+  const selectListById = useMemo(() => selectors.makeSelectListById(), []);
+  // backlog 컬럼의 인덱스만 단일 숫자로 추출 (배열을 만들지 않아 referential equality 안전)
+  const backlogIndex = useSelector((state) => {
+    if (!listIds) return -1;
+    for (let i = 0; i < listIds.length; i += 1) {
+      const list = selectListById(state, listIds[i]);
+      if (list && list.type === ListTypes.BACKLOG) return i;
+    }
+    return -1;
+  });
 
   const canAddList = useSelector((state) => {
     const isEditModeEnabled = selectors.selectIsEditModeEnabled(state); // TODO: move out?
@@ -63,10 +74,21 @@ const KanbanContent = React.memo(() => {
       const id = parseDndId(draggableId);
 
       switch (type) {
-        case DroppableTypes.LIST:
+        case DroppableTypes.LIST: {
+          // backlog 위치 보호:
+          // 1) backlog 자체는 항상 가장 왼쪽이어야 한다 (다른 인덱스로 이동 불가)
+          // 2) 다른 리스트는 backlog의 왼쪽으로 이동할 수 없다
+          const isMovingBacklog = source.index === backlogIndex;
+          if (isMovingBacklog && destination.index !== 0) {
+            return;
+          }
+          if (!isMovingBacklog && backlogIndex !== -1 && destination.index <= backlogIndex) {
+            return;
+          }
           dispatch(entryActions.moveList(id, destination.index));
 
           break;
+        }
         case DroppableTypes.CARD:
           dispatch(
             entryActions.moveCard(id, parseDndId(destination.droppableId), destination.index),
@@ -76,7 +98,7 @@ const KanbanContent = React.memo(() => {
         default:
       }
     },
-    [dispatch],
+    [dispatch, backlogIndex],
   );
 
   const handleAddListClick = useCallback(() => {
@@ -151,6 +173,7 @@ const KanbanContent = React.memo(() => {
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div ref={wrapperRef} className={styles.wrapper} onMouseDown={handleMouseDown}>
+      <BoardSummaryBar />
       <div>
         <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <Droppable droppableId="board" type={DroppableTypes.LIST} direction="horizontal">

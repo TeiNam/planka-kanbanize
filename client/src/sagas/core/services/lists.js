@@ -14,6 +14,12 @@ import api from '../../../api';
 import { createLocalId } from '../../../utils/local-id';
 import ToastTypes from '../../../constants/ToastTypes';
 
+const isWipLimitSumExceededError = (error) => {
+  if (!error) return false;
+  const msg = `${error.message || ''}`;
+  return msg.indexOf('column WIP limits') !== -1;
+};
+
 export function* createList(boardId, data) {
   const localId = yield call(createLocalId);
 
@@ -34,6 +40,9 @@ export function* createList(boardId, data) {
   try {
     ({ item: list } = yield call(request, api.createList, boardId, nextData));
   } catch (error) {
+    if (isWipLimitSumExceededError(error)) {
+      yield call(toast, { type: ToastTypes.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT });
+    }
     yield put(actions.createList.failure(localId, error));
     return;
   }
@@ -58,6 +67,9 @@ export function* updateList(id, data) {
   try {
     ({ item: list } = yield call(request, api.updateList, id, data));
   } catch (error) {
+    if (isWipLimitSumExceededError(error)) {
+      yield call(toast, { type: ToastTypes.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT });
+    }
     yield put(actions.updateList.failure(id, error));
     return;
   }

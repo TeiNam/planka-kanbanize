@@ -67,6 +67,18 @@ export default class extends BaseModel {
       as: 'board',
       relatedName: 'lists',
     }),
+    wipLimit: attr(),
+    subColumnType: attr(),
+    parentListId: fk({
+      to: 'List',
+      as: 'parentList',
+      relatedName: 'subColumns',
+    }),
+    isBuffer: attr({
+      getDefault: () => false,
+    }),
+    pullCriteria: attr(),
+    policy: attr(),
   };
 
   static reducer({ type, payload }, List) {

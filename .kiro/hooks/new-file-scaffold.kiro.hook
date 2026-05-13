@@ -1,0 +1,17 @@
+{
+  "name": "New File Standards Check",
+  "version": "1.0.0",
+  "description": "새 코드 파일 생성 시 프로젝트 규칙 준수를 검증합니다",
+  "when": {
+    "type": "fileCreated",
+    "patterns": [
+      "*.js",
+      "*.jsx",
+      "*.mjs"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new code file was created. Verify it follows Planka project conventions: 1) Server files follow Sails.js module.exports pattern with inputs/exits/fn, 2) Client components use React functional components with proper imports, 3) Consistent naming with existing files in the same directory, 4) Exports are properly defined. Only report issues — do not modify the file."
+  }
+}

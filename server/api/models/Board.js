@@ -104,9 +104,15 @@ const ImportTypes = {
   TRELLO: 'trello',
 };
 
+const WipLimitModes = {
+  WARN: 'warn',
+  BLOCK: 'block',
+};
+
 module.exports = {
   Views,
   ImportTypes,
+  WipLimitModes,
 
   attributes: {
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
@@ -153,6 +159,17 @@ module.exports = {
       defaultsTo: false,
       columnName: 'expand_task_lists_by_default',
     },
+    systemWipLimit: {
+      type: 'number',
+      allowNull: true,
+      columnName: 'system_wip_limit',
+    },
+    wipLimitMode: {
+      type: 'string',
+      isIn: Object.values(WipLimitModes),
+      defaultsTo: WipLimitModes.WARN,
+      columnName: 'wip_limit_mode',
+    },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
@@ -178,6 +195,22 @@ module.exports = {
     },
     labels: {
       collection: 'Label',
+      via: 'boardId',
+    },
+    swimLanes: {
+      collection: 'SwimLane',
+      via: 'boardId',
+    },
+    commitmentPoints: {
+      collection: 'CommitmentPoint',
+      via: 'boardId',
+    },
+    classesOfService: {
+      collection: 'ClassOfService',
+      via: 'boardId',
+    },
+    decorators: {
+      collection: 'Decorator',
       via: 'boardId',
     },
   },

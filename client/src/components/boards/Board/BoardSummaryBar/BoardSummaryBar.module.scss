@@ -1,0 +1,52 @@
+/*!
+ * Copyright (c) 2024 PLANKA Software GmbH
+ * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
+ */
+
+:global(#app) {
+  .wrapper {
+    align-items: center;
+    color: #fff;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    padding: 4px 0 8px 1px;
+  }
+
+  .tagline {
+    color: rgba(255, 255, 255, 0.85);
+    flex: 1;
+    font-size: 13px;
+    line-height: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .totalWip {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.32);
+    border-radius: 3px;
+    color: #fff;
+    display: inline-flex;
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: bold;
+    gap: 6px;
+    line-height: 22px;
+    padding: 3px 10px;
+  }
+
+  .totalWipExceeded {
+    background: #eb5a46;
+  }
+
+  .totalWipLabel {
+    opacity: 0.85;
+    font-weight: normal;
+  }
+
+  .totalWipValue {
+    font-variant-numeric: tabular-nums;
+  }
+}

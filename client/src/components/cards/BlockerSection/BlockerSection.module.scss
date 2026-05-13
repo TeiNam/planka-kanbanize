@@ -1,0 +1,211 @@
+/*!
+ * Copyright (c) 2024 PLANKA Software GmbH
+ * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
+ */
+
+:global(#app) {
+  .wrapper {
+    margin-bottom: 24px;
+  }
+
+  .header {
+    align-items: center;
+    display: flex;
+    margin-bottom: 8px;
+  }
+
+  .headerIcon {
+    color: #db2828;
+    font-size: 17px;
+    margin-right: 8px;
+  }
+
+  .headerTitle {
+    color: #17394d;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1.5;
+  }
+
+  .activeCount {
+    background: #db2828;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1;
+    margin-left: 8px;
+    padding: 3px 7px;
+  }
+
+  .content {
+    margin-left: 0;
+  }
+
+  .blockerItemActive {
+    background: #fff6f6;
+    border: 1px solid #e0b4b4;
+    border-left: 4px solid #db2828;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+  }
+
+  .blockerItemResolved {
+    background: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-left: 4px solid #a0a0a0;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    opacity: 0.7;
+    padding: 10px 12px;
+  }
+
+  .blockerHeader {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+  }
+
+  .blockerIconActive {
+    color: #db2828;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .blockerIconResolved {
+    color: #a0a0a0;
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .blockerReason {
+    color: #333;
+    flex: 1;
+    font-size: 14px;
+    word-break: break-word;
+  }
+
+  .statusActive {
+    background: #db2828;
+    border-radius: 3px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 6px;
+    text-transform: uppercase;
+  }
+
+  .statusResolved {
+    background: #e0e0e0;
+    border-radius: 3px;
+    color: #666;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 6px;
+    text-transform: uppercase;
+  }
+
+  .linkedCardsList {
+    margin-top: 6px;
+    padding-left: 22px;
+  }
+
+  .linkedCardItem {
+    align-items: center;
+    display: flex;
+    gap: 4px;
+    padding: 3px 0;
+  }
+
+  .completedIcon {
+    color: #21ba45;
+    margin: 0;
+  }
+
+  .pendingIcon {
+    color: #a0a0a0;
+    margin: 0;
+  }
+
+  .linkedCardLink {
+    background: none;
+    border: none;
+    color: #4183c4;
+    cursor: pointer;
+    flex: 1;
+    font-size: 13px;
+    outline: none;
+    overflow: hidden;
+    padding: 0;
+    text-align: left;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+      color: #1e70bf;
+      text-decoration: underline;
+    }
+  }
+
+  .linkedCardRemoveButton {
+    background: none;
+    border: none;
+    color: #a0a0a0;
+    cursor: pointer;
+    opacity: 0;
+    outline: none;
+    padding: 2px;
+    transition: opacity 0.15s;
+
+    &:hover {
+      color: #db2828;
+    }
+  }
+
+  .linkedCardItem:hover .linkedCardRemoveButton {
+    opacity: 1;
+  }
+
+  .blockerActions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+    padding-left: 22px;
+  }
+
+  .cardDropdown {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .deleteButton {
+    margin-left: auto !important;
+  }
+
+  .addButton {
+    background: transparent !important;
+    border: 1px dashed #ccc !important;
+    color: #6b808c !important;
+    margin-top: 4px;
+    width: 100%;
+
+    &:hover {
+      background: rgba(9, 30, 66, 0.04) !important;
+      border-color: #999 !important;
+    }
+  }
+
+  .addForm {
+    margin-top: 8px;
+  }
+
+  .addFormActions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+}

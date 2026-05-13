@@ -1,0 +1,60 @@
+/*!
+ * Copyright (c) 2024 PLANKA Software GmbH
+ * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
+ */
+
+:global(#app) {
+  .wrapper {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .header {
+    align-items: center;
+    border-bottom: 1px solid rgba(9, 30, 66, 0.13);
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 8px;
+  }
+
+  .headerExceeded {
+    background-color: #ffebe6;
+    border-bottom-color: #ff5630;
+  }
+
+  .headerLabel {
+    color: #5e6c84;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .wipDisplay {
+    color: #5e6c84;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .wipExceeded {
+    color: #bf2600;
+  }
+
+  .cardsWrapper {
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 4px 4px 0;
+  }
+
+  .cards {
+    min-height: 1px;
+  }
+
+  .card {
+    margin-bottom: 6px;
+  }
+}

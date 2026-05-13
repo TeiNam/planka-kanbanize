@@ -60,6 +60,14 @@ fetchBoard.success = (
   customFieldGroups,
   customFields,
   customFieldValues,
+  swimLanes,
+  commitmentPoints,
+  classesOfService,
+  decorators,
+  cardDecorators,
+  blockers,
+  blockerLinkedCards,
+  cardRelationships,
 ) => ({
   type: ActionTypes.BOARD_FETCH__SUCCESS,
   payload: {
@@ -78,6 +86,14 @@ fetchBoard.success = (
     customFieldGroups,
     customFields,
     customFieldValues,
+    swimLanes,
+    commitmentPoints,
+    classesOfService,
+    decorators,
+    cardDecorators,
+    blockers,
+    blockerLinkedCards,
+    cardRelationships,
   },
 });
 

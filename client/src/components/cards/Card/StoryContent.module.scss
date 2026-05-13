@@ -49,12 +49,21 @@
 
   .descriptionText {
     color: #17394d;
+    display: -webkit-box;
     font-size: 10px;
+    line-height: 1.4;
     margin-bottom: 8px;
-    mask-image: linear-gradient(180deg, #000 60%, transparent);
-    -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent);
-    max-height: 100px;
     overflow: hidden;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .trackingId {
+    color: #8a99a3;
+    font-family: monospace;
+    font-size: 10px;
+    margin-bottom: 4px;
   }
 
   .labels {
@@ -66,16 +75,94 @@
 
   .name {
     color: #17394d;
-    font-size: 16px;
+    flex: 1;
+    font-size: 14px;
     font-weight: bold;
     line-height: 20px;
-    margin: 0 0 8px;
-    text-transform: uppercase;
+    min-width: 0;
+    overflow-wrap: break-word;
     word-wrap: break-word;
   }
 
   .nameClosed {
     text-decoration: line-through;
+  }
+
+  .titleRow {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .titleRowRight {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 4px;
+  }
+
+  .members {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 2px;
+  }
+
+  .dates {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 6px;
+  }
+
+  .dateLine {
+    align-items: center;
+    color: #5e6c84;
+    display: flex;
+    font-size: 11px;
+    gap: 4px;
+    line-height: 18px;
+    white-space: nowrap;
+
+    :global(.icon) {
+      display: inline-flex;
+      align-items: center;
+      height: 18px;
+      line-height: 18px;
+      margin: 0;
+    }
+  }
+
+  .dateLabel {
+    font-weight: 600;
+  }
+
+  .dateValue {
+    background: rgba(9, 30, 66, 0.08);
+    border-radius: 3px;
+    color: #17394d;
+    font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    padding: 0 5px;
+  }
+
+  .dateAge {
+    align-items: center;
+    color: #8a99a3;
+    display: inline-flex;
+    gap: 3px;
+    margin-left: 4px;
+  }
+
+  .dateAgeIcon {
+    margin: 0 !important;
+  }
+
+  .dateAgeOverdue {
+    color: #eb5a46;
+    font-weight: 600;
   }
 
   .notification {
@@ -95,6 +182,15 @@
 
   .wrapper {
     padding: 8px 8px 0;
+  }
+
+  .badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    padding-bottom: 12px;
   }
 
   :global(.card):hover {

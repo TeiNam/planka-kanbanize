@@ -22,7 +22,7 @@ import styles from './AddList.module.scss';
 
 const DEFAULT_DATA = {
   name: '',
-  type: ListTypes.ACTIVE,
+  type: ListTypes.TASK,
 };
 
 const AddList = React.memo(({ onClose }) => {

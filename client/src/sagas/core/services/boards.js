@@ -4,6 +4,7 @@
  */
 
 import { call, fork, put, select, take } from 'redux-saga/effects';
+import { toast } from 'react-hot-toast';
 
 import { goToBoard, goToProject } from './router';
 import { openModal } from './modals';
@@ -14,6 +15,13 @@ import api from '../../../api';
 import { createLocalId } from '../../../utils/local-id';
 import ActionTypes from '../../../constants/ActionTypes';
 import ModalTypes from '../../../constants/ModalTypes';
+import ToastTypes from '../../../constants/ToastTypes';
+
+const isWipLimitSumExceededError = (error) => {
+  if (!error) return false;
+  const msg = `${error.message || ''}`;
+  return msg.indexOf('column WIP limits sum') !== -1 || msg.indexOf('Sum of column WIP limits') !== -1;
+};
 
 export function* createBoard(projectId, { import: boardImport, ...data }) {
   const localId = yield call(createLocalId);
@@ -104,6 +112,14 @@ export function* fetchBoard(id) {
   let customFieldGroups;
   let customFields;
   let customFieldValues;
+  let swimLanes;
+  let commitmentPoints;
+  let classesOfService;
+  let decorators;
+  let cardDecorators;
+  let blockers;
+  let blockerLinkedCards;
+  let cardRelationships;
 
   try {
     ({
@@ -123,6 +139,14 @@ export function* fetchBoard(id) {
         customFieldGroups,
         customFields,
         customFieldValues,
+        swimLanes,
+        commitmentPoints,
+        classesOfService,
+        decorators,
+        cardDecorators,
+        blockers,
+        blockerLinkedCards,
+        cardRelationships,
       },
     } = yield call(request, api.getBoard, id, true));
   } catch (error) {
@@ -147,6 +171,14 @@ export function* fetchBoard(id) {
       customFieldGroups,
       customFields,
       customFieldValues,
+      swimLanes,
+      commitmentPoints,
+      classesOfService,
+      decorators,
+      cardDecorators,
+      blockers,
+      blockerLinkedCards,
+      cardRelationships,
     ),
   );
 }
@@ -158,6 +190,9 @@ export function* updateBoard(id, data) {
   try {
     ({ item: board } = yield call(request, api.updateBoard, id, data));
   } catch (error) {
+    if (isWipLimitSumExceededError(error)) {
+      yield call(toast, { type: ToastTypes.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT });
+    }
     yield put(actions.updateBoard.failure(id, error));
     return;
   }

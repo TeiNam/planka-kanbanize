@@ -22,6 +22,7 @@ import DroppableTypes from '../../../constants/DroppableTypes';
 import { BoardMembershipRoles, ListTypes } from '../../../constants/Enums';
 import { ListTypeIcons } from '../../../constants/Icons';
 import EditName from './EditName';
+import WipLimitIndicator from '../WipLimitIndicator';
 import ActionsStep from './ActionsStep';
 import DraggableCard from '../../cards/DraggableCard';
 import AddCard from '../../cards/AddCard';
@@ -48,11 +49,32 @@ const List = React.memo(({ id, index }) => {
     [],
   );
 
+  const selectSubColumnIds = useMemo(() => selectors.makeSelectSubColumnIdsByListId(), []);
+
+  const selectActiveSubColumnCardIds = useMemo(
+    () => selectors.makeSelectFilteredCardIdsByListId(),
+    [],
+  );
+  const selectDoneSubColumnCardIds = useMemo(
+    () => selectors.makeSelectFilteredCardIdsByListId(),
+    [],
+  );
+
   const clipboard = useSelector(selectors.selectClipboard);
   const isFavoritesActive = useSelector(selectors.selectIsFavoritesActiveForCurrentUser);
 
   const list = useSelector((state) => selectListById(state, id));
   const cardIds = useSelector((state) => selectFilteredCardIdsByListId(state, id));
+  const subColumnIds = useSelector((state) => selectSubColumnIds(state, id));
+  const hasSubColumns = !!(subColumnIds && subColumnIds.length > 0);
+  const activeSubColumnId = hasSubColumns ? subColumnIds[0] : null;
+  const doneSubColumnId = hasSubColumns ? subColumnIds[1] : null;
+  const activeSubCardIds = useSelector((state) =>
+    activeSubColumnId ? selectActiveSubColumnCardIds(state, activeSubColumnId) : null,
+  );
+  const doneSubCardIds = useSelector((state) =>
+    doneSubColumnId ? selectDoneSubColumnCardIds(state, doneSubColumnId) : null,
+  );
 
   const { canEdit, canArchiveCards, canAddCard, canPasteCard, canDropCard } = useSelector(
     (state) => {
@@ -159,9 +181,9 @@ const List = React.memo(({ id, index }) => {
     />
   );
 
-  const cardsNode = (
+  const renderDroppableCards = (droppableId, ids, withAddCardTop, withAddCardBottom) => (
     <Droppable
-      droppableId={`list:${id}`}
+      droppableId={droppableId}
       type={DroppableTypes.CARD}
       isDropDisabled={!list.isPersisted || !canDropCard}
     >
@@ -169,16 +191,51 @@ const List = React.memo(({ id, index }) => {
         // eslint-disable-next-line react/jsx-props-no-spreading
         <div {...droppableProps} ref={innerRef}>
           <div className={styles.cards}>
-            {addCardPosition === AddCardPositions.TOP && addCardNode}
-            {cardIds.map((cardId, cardIndex) => (
+            {withAddCardTop && addCardNode}
+            {(ids || []).map((cardId, cardIndex) => (
               <DraggableCard key={cardId} id={cardId} index={cardIndex} className={styles.card} />
             ))}
             {placeholder}
-            {addCardPosition === AddCardPositions.BOTTOM && addCardNode}
+            {withAddCardBottom && addCardNode}
           </div>
         </div>
       )}
     </Droppable>
+  );
+
+  const cardsNode = hasSubColumns ? (
+    <div className={styles.subColumns}>
+      <div className={styles.subColumn}>
+        <div className={styles.subColumnHeader}>
+          {t('common.active', { defaultValue: 'Active' })}
+          {activeSubCardIds && (
+            <span className={styles.subColumnCount}>{activeSubCardIds.length}</span>
+          )}
+        </div>
+        {renderDroppableCards(
+          `list:${activeSubColumnId}`,
+          activeSubCardIds,
+          addCardPosition === AddCardPositions.TOP,
+          addCardPosition === AddCardPositions.BOTTOM,
+        )}
+      </div>
+      <div className={styles.subColumn}>
+        <div className={classNames(styles.subColumnHeader, styles.subColumnHeaderDone)}>
+          {t('common.done', { defaultValue: 'Done' })}
+          {doneSubCardIds && (
+            <span className={styles.subColumnCount}>{doneSubCardIds.length}</span>
+          )}
+        </div>
+        {renderDroppableCards(`list:${doneSubColumnId}`, doneSubCardIds, false, false)}
+      </div>
+    </div>
+  ) : (
+    renderDroppableCards(
+      `list:${id}`,
+      cardIds,
+      addCardPosition === AddCardPositions.TOP,
+      addCardPosition === AddCardPositions.BOTTOM,
+    )
   );
 
   return (
@@ -192,7 +249,10 @@ const List = React.memo(({ id, index }) => {
           {...draggableProps} // eslint-disable-line react/jsx-props-no-spreading
           data-drag-scroller
           ref={innerRef}
-          className={styles.innerWrapper}
+          className={classNames(
+            styles.innerWrapper,
+            hasSubColumns && styles.innerWrapperWithSubColumns,
+          )}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleListMouseLeave}
         >
@@ -202,6 +262,9 @@ const List = React.memo(({ id, index }) => {
               styles.outerWrapper,
               isFavoritesActive && styles.outerWrapperWithFavorites,
               list.color && globalStyles[`background${upperFirst(camelCase(list.color))}Soft`],
+              list.type === ListTypes.BACKLOG && styles.outerWrapperBacklog,
+              list.type === ListTypes.CLOSED && styles.outerWrapperClosed,
+              list.type === ListTypes.DISCARD && styles.outerWrapperDiscard,
             )}
             onTransitionEnd={handleWrapperTransitionEnd}
           >
@@ -228,7 +291,7 @@ const List = React.memo(({ id, index }) => {
                   {list.name}
                 </div>
               )}
-              {list.type !== ListTypes.ACTIVE && (
+              {list.type !== ListTypes.TASK && (
                 <Icon
                   name={ListTypeIcons[list.type]}
                   className={classNames(
@@ -236,6 +299,11 @@ const List = React.memo(({ id, index }) => {
                     list.isPersisted && (canEdit || canArchiveCards) && styles.headerIconHidable,
                   )}
                 />
+              )}
+              {list.isPersisted && list.type === ListTypes.TASK && (
+                <span className={styles.headerWipLimit}>
+                  <WipLimitIndicator listId={id} />
+                </span>
               )}
               {list.isPersisted &&
                 (canEdit ? (

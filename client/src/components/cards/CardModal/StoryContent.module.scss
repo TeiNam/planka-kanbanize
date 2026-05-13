@@ -286,6 +286,46 @@
     margin-bottom: 10px;
   }
 
+  // 생성자/라벨/날짜/멤버 등을 위→아래로 차곡차곡 쌓는다.
+  .moduleWrapperAttachmentsStacked {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    > .attachments {
+      width: 100%;
+    }
+  }
+
+  .trackingId {
+    color: #6b808c;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 16px;
+    margin-bottom: 2px;
+  }
+
+  .dateValueChip {
+    align-items: center;
+    background: #ebeef0;
+    border-radius: 3px;
+    color: #17394d;
+    display: inline-flex;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    gap: 6px;
+    line-height: 20px;
+    padding: 4px 8px;
+  }
+
+  .dateValueLabel {
+    color: #6b808c;
+    font-family: inherit;
+    font-weight: 600;
+    text-transform: none;
+  }
+
   .moreActionsButton {
     background: transparent;
     box-shadow: none;

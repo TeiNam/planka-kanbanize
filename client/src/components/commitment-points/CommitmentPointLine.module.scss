@@ -1,0 +1,102 @@
+/*!
+ * Copyright (c) 2024 PLANKA Software GmbH
+ * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
+ */
+
+:global(#app) {
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 24px;
+    min-height: 100%;
+    position: relative;
+    cursor: default;
+    user-select: none;
+  }
+
+  .wrapperCommitment {
+    .line {
+      border-left: 2px dashed #2185d0;
+    }
+
+    .typeIndicator {
+      background-color: #2185d0;
+    }
+  }
+
+  .wrapperDelivery {
+    .line {
+      border-left: 2px dashed #21ba45;
+    }
+
+    .typeIndicator {
+      background-color: #21ba45;
+    }
+  }
+
+  .line {
+    flex: 1;
+    min-height: 16px;
+  }
+
+  .labelContainer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .label {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #172b4d;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+
+  .typeIndicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px 0;
+    flex-shrink: 0;
+  }
+
+  .typeText {
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .triggerButton {
+    all: unset;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100%;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+
+    &:hover .line {
+      opacity: 0.7;
+    }
+
+    &:hover .typeIndicator {
+      transform: scale(1.1);
+    }
+  }
+}

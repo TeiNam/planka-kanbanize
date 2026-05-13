@@ -32,6 +32,15 @@ import comments from './comments';
 import activities from './activities';
 import notifications from './notifications';
 import notificationServices from './notification-services';
+import swimLanes from './swim-lanes';
+import commitmentPoints from './commitment-points';
+import classesOfService from './classes-of-service';
+import blockers from './blockers';
+import blockerLinkedCards from './blocker-linked-cards';
+import cardRelationships from './card-relationships';
+import decorators from './decorators';
+import cardDecorators from './card-decorators';
+import metrics from './metrics';
 
 export { http, socket };
 
@@ -63,4 +72,13 @@ export default {
   ...activities,
   ...notifications,
   ...notificationServices,
+  ...swimLanes,
+  ...commitmentPoints,
+  ...classesOfService,
+  ...blockers,
+  ...blockerLinkedCards,
+  ...cardRelationships,
+  ...decorators,
+  ...cardDecorators,
+  ...metrics,
 };

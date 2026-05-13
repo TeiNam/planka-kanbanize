@@ -293,6 +293,90 @@ const createSocketEventsChannel = () =>
       emit(entryActions.handleNotificationServiceDelete(item));
     };
 
+    const handleSwimLaneCreate = ({ item }) => {
+      emit(entryActions.handleSwimLaneCreate(item));
+    };
+
+    const handleSwimLaneUpdate = ({ item }) => {
+      emit(entryActions.handleSwimLaneUpdate(item));
+    };
+
+    const handleSwimLaneDelete = ({ item }) => {
+      emit(entryActions.handleSwimLaneDelete(item));
+    };
+
+    const handleCommitmentPointCreate = ({ item }) => {
+      emit(entryActions.handleCommitmentPointCreate(item));
+    };
+
+    const handleCommitmentPointUpdate = ({ item }) => {
+      emit(entryActions.handleCommitmentPointUpdate(item));
+    };
+
+    const handleCommitmentPointDelete = ({ item }) => {
+      emit(entryActions.handleCommitmentPointDelete(item));
+    };
+
+    const handleClassOfServiceCreate = ({ item }) => {
+      emit(entryActions.handleClassOfServiceCreate(item));
+    };
+
+    const handleClassOfServiceUpdate = ({ item }) => {
+      emit(entryActions.handleClassOfServiceUpdate(item));
+    };
+
+    const handleClassOfServiceDelete = ({ item }) => {
+      emit(entryActions.handleClassOfServiceDelete(item));
+    };
+
+    const handleBlockerCreate = ({ item }) => {
+      emit(entryActions.handleBlockerCreate(item));
+    };
+
+    const handleBlockerUpdate = ({ item }) => {
+      emit(entryActions.handleBlockerUpdate(item));
+    };
+
+    const handleBlockerDelete = ({ item }) => {
+      emit(entryActions.handleBlockerDelete(item));
+    };
+
+    const handleBlockerLinkedCardCreate = ({ item }) => {
+      emit(entryActions.handleBlockerLinkedCardCreate(item));
+    };
+
+    const handleBlockerLinkedCardDelete = ({ item }) => {
+      emit(entryActions.handleBlockerLinkedCardDelete(item));
+    };
+
+    const handleCardRelationshipCreate = ({ item }) => {
+      emit(entryActions.handleCardRelationshipCreate(item));
+    };
+
+    const handleCardRelationshipDelete = ({ item }) => {
+      emit(entryActions.handleCardRelationshipDelete(item));
+    };
+
+    const handleDecoratorCreate = ({ item }) => {
+      emit(entryActions.handleDecoratorCreate(item));
+    };
+
+    const handleDecoratorUpdate = ({ item }) => {
+      emit(entryActions.handleDecoratorUpdate(item));
+    };
+
+    const handleDecoratorDelete = ({ item }) => {
+      emit(entryActions.handleDecoratorDelete(item));
+    };
+
+    const handleCardDecoratorCreate = ({ item }) => {
+      emit(entryActions.handleCardDecoratorCreate(item));
+    };
+
+    const handleCardDecoratorDelete = ({ item }) => {
+      emit(entryActions.handleCardDecoratorDelete(item));
+    };
+
     socket.on('disconnect', handleDisconnect);
     socket.on('reconnect', handleReconnect);
 
@@ -388,6 +472,35 @@ const createSocketEventsChannel = () =>
     socket.on('notificationServiceCreate', handleNotificationServiceCreate);
     socket.on('notificationServiceUpdate', handleNotificationServiceUpdate);
     socket.on('notificationServiceDelete', handleNotificationServiceDelete);
+
+    socket.on('swimLaneCreate', handleSwimLaneCreate);
+    socket.on('swimLaneUpdate', handleSwimLaneUpdate);
+    socket.on('swimLaneDelete', handleSwimLaneDelete);
+
+    socket.on('commitmentPointCreate', handleCommitmentPointCreate);
+    socket.on('commitmentPointUpdate', handleCommitmentPointUpdate);
+    socket.on('commitmentPointDelete', handleCommitmentPointDelete);
+
+    socket.on('classOfServiceCreate', handleClassOfServiceCreate);
+    socket.on('classOfServiceUpdate', handleClassOfServiceUpdate);
+    socket.on('classOfServiceDelete', handleClassOfServiceDelete);
+
+    socket.on('blockerCreate', handleBlockerCreate);
+    socket.on('blockerUpdate', handleBlockerUpdate);
+    socket.on('blockerDelete', handleBlockerDelete);
+
+    socket.on('blockerLinkedCardCreate', handleBlockerLinkedCardCreate);
+    socket.on('blockerLinkedCardDelete', handleBlockerLinkedCardDelete);
+
+    socket.on('cardRelationshipCreate', handleCardRelationshipCreate);
+    socket.on('cardRelationshipDelete', handleCardRelationshipDelete);
+
+    socket.on('decoratorCreate', handleDecoratorCreate);
+    socket.on('decoratorUpdate', handleDecoratorUpdate);
+    socket.on('decoratorDelete', handleDecoratorDelete);
+
+    socket.on('cardDecoratorCreate', handleCardDecoratorCreate);
+    socket.on('cardDecoratorDelete', handleCardDecoratorDelete);
 
     return () => {
       socket.off('disconnect', handleDisconnect);
@@ -485,6 +598,35 @@ const createSocketEventsChannel = () =>
       socket.off('notificationServiceCreate', handleNotificationServiceCreate);
       socket.off('notificationServiceUpdate', handleNotificationServiceUpdate);
       socket.off('notificationServiceDelete', handleNotificationServiceDelete);
+
+      socket.off('swimLaneCreate', handleSwimLaneCreate);
+      socket.off('swimLaneUpdate', handleSwimLaneUpdate);
+      socket.off('swimLaneDelete', handleSwimLaneDelete);
+
+      socket.off('commitmentPointCreate', handleCommitmentPointCreate);
+      socket.off('commitmentPointUpdate', handleCommitmentPointUpdate);
+      socket.off('commitmentPointDelete', handleCommitmentPointDelete);
+
+      socket.off('classOfServiceCreate', handleClassOfServiceCreate);
+      socket.off('classOfServiceUpdate', handleClassOfServiceUpdate);
+      socket.off('classOfServiceDelete', handleClassOfServiceDelete);
+
+      socket.off('blockerCreate', handleBlockerCreate);
+      socket.off('blockerUpdate', handleBlockerUpdate);
+      socket.off('blockerDelete', handleBlockerDelete);
+
+      socket.off('blockerLinkedCardCreate', handleBlockerLinkedCardCreate);
+      socket.off('blockerLinkedCardDelete', handleBlockerLinkedCardDelete);
+
+      socket.off('cardRelationshipCreate', handleCardRelationshipCreate);
+      socket.off('cardRelationshipDelete', handleCardRelationshipDelete);
+
+      socket.off('decoratorCreate', handleDecoratorCreate);
+      socket.off('decoratorUpdate', handleDecoratorUpdate);
+      socket.off('decoratorDelete', handleDecoratorDelete);
+
+      socket.off('cardDecoratorCreate', handleCardDecoratorCreate);
+      socket.off('cardDecoratorDelete', handleCardDecoratorDelete);
     };
   });
 

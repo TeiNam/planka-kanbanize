@@ -22,10 +22,75 @@ module.exports = {
     },
   },
 
+  exits: {
+    backlogAlreadyExists: {},
+    backlogMustBeLeftmost: {},
+    wipLimitSumExceedsSystemLimit: {},
+  },
+
   async fn(inputs) {
     const { values } = inputs;
 
     const lists = await sails.helpers.boards.getKanbanListsById(values.board.id);
+
+    // backlog 유일성 검증: 같은 보드 최상위에 backlog가 이미 있으면 차단
+    if (values.type === List.Types.BACKLOG) {
+      const existingBacklog = lists.find(
+        (l) => l.parentListId === null && l.type === List.Types.BACKLOG,
+      );
+      if (existingBacklog) {
+        throw 'backlogAlreadyExists';
+      }
+    }
+
+    // backlog 위치 강제: 항상 가장 왼쪽이어야 한다
+    if (values.type === List.Types.BACKLOG && !_.isUndefined(values.position)) {
+      const otherTopLevel = lists.filter((l) => l.parentListId === null);
+      const minPosition = otherTopLevel.reduce(
+        (min, l) => (l.position !== null && (min === null || l.position < min) ? l.position : min),
+        null,
+      );
+      if (minPosition !== null && values.position >= minPosition) {
+        throw 'backlogMustBeLeftmost';
+      }
+    }
+
+    // backlog가 아닌 리스트는 backlog 왼쪽으로 이동할 수 없다
+    if (
+      values.type !== List.Types.BACKLOG &&
+      !_.isUndefined(values.position) &&
+      values.position !== null
+    ) {
+      const backlog = lists.find(
+        (l) => l.parentListId === null && l.type === List.Types.BACKLOG,
+      );
+      if (backlog && backlog.position !== null && values.position <= backlog.position) {
+        throw 'backlogMustBeLeftmost';
+      }
+    }
+
+    // task 컬럼이고 wipLimit가 있을 때, 보드 systemWipLimit 합산 제약 검증
+    if (
+      values.type === List.Types.TASK &&
+      values.wipLimit &&
+      values.board &&
+      values.board.systemWipLimit !== null &&
+      values.board.systemWipLimit !== undefined &&
+      Number(values.board.systemWipLimit) > 0
+    ) {
+      const sum = await sails.helpers.lists.getTaskWipLimitSum.with({
+        boardId: values.board.id,
+        excludeListId: null,
+        virtualList: {
+          type: List.Types.TASK,
+          wipLimit: Number(values.wipLimit),
+          parentListId: null,
+        },
+      });
+      if (sum > Number(values.board.systemWipLimit)) {
+        throw 'wipLimitSumExceedsSystemLimit';
+      }
+    }
 
     const { position, repositions } = sails.helpers.utils.insertToPositionables(
       values.position,

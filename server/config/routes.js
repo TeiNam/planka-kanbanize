@@ -163,6 +163,23 @@ module.exports.routes = {
   'PATCH /api/labels/:id': 'labels/update',
   'DELETE /api/labels/:id': 'labels/delete',
 
+  'POST /api/boards/:boardId/classes-of-service': 'classes-of-service/create',
+  'PATCH /api/classes-of-service/:id': 'classes-of-service/update',
+  'DELETE /api/classes-of-service/:id': 'classes-of-service/delete',
+
+  'POST /api/boards/:boardId/swim-lanes': 'swim-lanes/create',
+  'PATCH /api/swim-lanes/:id': 'swim-lanes/update',
+  'DELETE /api/swim-lanes/:id': 'swim-lanes/delete',
+  'POST /api/boards/:boardId/swim-lanes/sort': 'swim-lanes/sort',
+
+  'POST /api/boards/:boardId/commitment-points': 'commitment-points/create',
+  'PATCH /api/commitment-points/:id': 'commitment-points/update',
+  'DELETE /api/commitment-points/:id': 'commitment-points/delete',
+
+  'POST /api/boards/:boardId/decorators': 'decorators/create',
+  'PATCH /api/decorators/:id': 'decorators/update',
+  'DELETE /api/decorators/:id': 'decorators/delete',
+
   'POST /api/boards/:boardId/lists': 'lists/create',
   'GET /api/lists/:id': 'lists/show',
   'PATCH /api/lists/:id': 'lists/update',
@@ -182,6 +199,19 @@ module.exports.routes = {
   'DELETE /api/cards/:cardId/card-memberships/userId::userId': 'card-memberships/delete',
   'POST /api/cards/:cardId/card-labels': 'card-labels/create',
   'DELETE /api/cards/:cardId/card-labels/labelId::labelId': 'card-labels/delete',
+
+  'POST /api/cards/:cardId/card-decorators': 'card-decorators/create',
+  'DELETE /api/card-decorators/:id': 'card-decorators/delete',
+
+  'POST /api/cards/:cardId/blockers': 'blockers/create',
+  'PATCH /api/blockers/:id': 'blockers/update',
+  'DELETE /api/blockers/:id': 'blockers/delete',
+  'POST /api/blockers/:blockerId/linked-cards': 'blocker-linked-cards/create',
+  'DELETE /api/blocker-linked-cards/:id': 'blocker-linked-cards/delete',
+
+  'POST /api/cards/:cardId/card-relationships': 'card-relationships/create',
+  'DELETE /api/card-relationships/:id': 'card-relationships/delete',
+  'POST /api/cards/:cardId/card-relationships/sort': 'card-relationships/sort',
 
   'POST /api/cards/:cardId/task-lists': 'task-lists/create',
   'GET /api/task-lists/:id': 'task-lists/show',
@@ -218,6 +248,12 @@ module.exports.routes = {
   'POST /api/cards/:cardId/comments': 'comments/create',
   'PATCH /api/comments/:id': 'comments/update',
   'DELETE /api/comments/:id': 'comments/delete',
+
+  'GET /api/boards/:boardId/metrics/cfd': 'metrics/show-cfd',
+  'GET /api/boards/:boardId/metrics/lead-time': 'metrics/show-lead-time',
+  'GET /api/boards/:boardId/metrics/throughput': 'metrics/show-throughput',
+  'GET /api/boards/:boardId/metrics/wip-aging': 'metrics/show-wip-aging',
+  'GET /api/boards/:boardId/metrics/summary': 'metrics/show-summary',
 
   'GET /api/boards/:boardId/actions': 'actions/index-in-board',
   'GET /api/cards/:cardId/actions': 'actions/index-in-card',

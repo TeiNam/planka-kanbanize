@@ -40,6 +40,8 @@ import AddTaskListStep from '../../task-lists/AddTaskListStep';
 import Attachments from '../../attachments/Attachments';
 import AddAttachmentStep from '../../attachments/AddAttachmentStep';
 import AddCustomFieldGroupStep from '../../custom-field-groups/AddCustomFieldGroupStep';
+import BlockerSection from '../BlockerSection/BlockerSection';
+import BlockerSectionStep from '../BlockerSection/BlockerSectionStep';
 
 import styles from './ProjectContent.module.scss';
 
@@ -64,6 +66,7 @@ const ProjectContent = React.memo(() => {
 
   const isInArchiveList = list.type === ListTypes.ARCHIVE;
   const isInTrashList = list.type === ListTypes.TRASH;
+  const isInDiscardList = list.type === ListTypes.DISCARD;
 
   const {
     canEditType,
@@ -292,6 +295,7 @@ const ProjectContent = React.memo(() => {
   const AddTaskListPopup = usePopupInClosableContext(AddTaskListStep);
   const AddAttachmentPopup = usePopupInClosableContext(AddAttachmentStep);
   const AddCustomFieldGroupPopup = usePopupInClosableContext(AddCustomFieldGroupStep);
+  const BlockerSectionPopup = usePopupInClosableContext(BlockerSectionStep);
   const MoreActionsPopup = usePopupInClosableContext(MoreActionsStep);
   const ConfirmationPopup = usePopupInClosableContext(ConfirmationStep);
 
@@ -302,6 +306,9 @@ const ProjectContent = React.memo(() => {
           <div className={styles.headerWrapper}>
             <Icon name={CardTypeIcons[CardTypes.PROJECT]} className={styles.moduleIcon} />
             <div className={styles.headerTitleWrapper}>
+              {card.id && (
+                <div className={styles.trackingId}>{`#${String(card.id).slice(-6)}`}</div>
+              )}
               {canEditName ? (
                 <NameField defaultValue={card.name} onUpdate={handleNameUpdate} />
               ) : (
@@ -315,10 +322,18 @@ const ProjectContent = React.memo(() => {
         <Grid.Column width={12} className={styles.contentPadding}>
           {(card.dueDate ||
             card.stopwatch ||
+            card.createdAt ||
+            card.startDate ||
+            card.completedAt ||
             board.alwaysDisplayCardCreator ||
             userIds.length > 0 ||
             labelIds.length > 0) && (
-            <div className={styles.moduleWrapper}>
+            <div
+              className={classNames(
+                styles.moduleWrapper,
+                styles.moduleWrapperAttachmentsStacked,
+              )}
+            >
               {board.alwaysDisplayCardCreator && (
                 <div className={styles.attachments}>
                   <div className={styles.text}>
@@ -331,44 +346,6 @@ const ProjectContent = React.memo(() => {
                       <UserAvatar withCreatorIndicator id={card.creatorUserId} />
                     </CreationDetailsPopup>
                   </span>
-                </div>
-              )}
-              {userIds.length > 0 && (
-                <div className={styles.attachments}>
-                  <div className={styles.text}>
-                    {t('common.members', {
-                      context: 'title',
-                    })}
-                  </div>
-                  {userIds.map((userId) => (
-                    <span key={userId} className={styles.attachment}>
-                      {canUseMembers ? (
-                        <BoardMembershipsPopup
-                          currentUserIds={userIds}
-                          onUserSelect={handleUserSelect}
-                          onUserDeselect={handleUserDeselect}
-                        >
-                          <UserAvatar id={userId} />
-                        </BoardMembershipsPopup>
-                      ) : (
-                        <UserAvatar id={userId} />
-                      )}
-                    </span>
-                  ))}
-                  {canUseMembers && (
-                    <BoardMembershipsPopup
-                      currentUserIds={userIds}
-                      onUserSelect={handleUserSelect}
-                      onUserDeselect={handleUserDeselect}
-                    >
-                      <button
-                        type="button"
-                        className={classNames(styles.attachment, styles.dueDate)}
-                      >
-                        <Icon name="add" size="small" className={styles.addAttachment} />
-                      </button>
-                    </BoardMembershipsPopup>
-                  )}
                 </div>
               )}
               {labelIds.length > 0 && (
@@ -411,6 +388,28 @@ const ProjectContent = React.memo(() => {
                   )}
                 </div>
               )}
+              {card.createdAt && (
+                <div className={styles.attachments}>
+                  <div className={styles.text}>생성일</div>
+                  <span className={styles.attachment}>
+                    <span className={styles.dateValueChip}>
+                      <Icon name="calendar outline" />
+                      {`${new Date(card.createdAt).getMonth() + 1}/${new Date(card.createdAt).getDate()}`}
+                    </span>
+                  </span>
+                </div>
+              )}
+              {card.startDate && (
+                <div className={styles.attachments}>
+                  <div className={styles.text}>시작일</div>
+                  <span className={styles.attachment}>
+                    <span className={styles.dateValueChip}>
+                      <Icon name="play" />
+                      {`${new Date(card.startDate).getMonth() + 1}/${new Date(card.startDate).getDate()}`}
+                    </span>
+                  </span>
+                </div>
+              )}
               {card.dueDate && (
                 <div className={styles.attachments}>
                   <div className={styles.text}>
@@ -446,6 +445,55 @@ const ProjectContent = React.memo(() => {
                       />
                     )}
                   </span>
+                </div>
+              )}
+              {card.completedAt && (
+                <div className={styles.attachments}>
+                  <div className={styles.text}>{isInDiscardList ? '폐기일' : '완료일'}</div>
+                  <span className={styles.attachment}>
+                    <span className={styles.dateValueChip}>
+                      <Icon name={isInDiscardList ? 'trash alternate outline' : 'check'} />
+                      {`${new Date(card.completedAt).getMonth() + 1}/${new Date(card.completedAt).getDate()}`}
+                    </span>
+                  </span>
+                </div>
+              )}
+              {userIds.length > 0 && (
+                <div className={styles.attachments}>
+                  <div className={styles.text}>
+                    {t('common.members', {
+                      context: 'title',
+                    })}
+                  </div>
+                  {userIds.map((userId) => (
+                    <span key={userId} className={styles.attachment}>
+                      {canUseMembers ? (
+                        <BoardMembershipsPopup
+                          currentUserIds={userIds}
+                          onUserSelect={handleUserSelect}
+                          onUserDeselect={handleUserDeselect}
+                        >
+                          <UserAvatar id={userId} />
+                        </BoardMembershipsPopup>
+                      ) : (
+                        <UserAvatar id={userId} />
+                      )}
+                    </span>
+                  ))}
+                  {canUseMembers && (
+                    <BoardMembershipsPopup
+                      currentUserIds={userIds}
+                      onUserSelect={handleUserSelect}
+                      onUserDeselect={handleUserDeselect}
+                    >
+                      <button
+                        type="button"
+                        className={classNames(styles.attachment, styles.dueDate)}
+                      >
+                        <Icon name="add" size="small" className={styles.addAttachment} />
+                      </button>
+                    </BoardMembershipsPopup>
+                  )}
                 </div>
               )}
               {card.stopwatch && (
@@ -531,6 +579,11 @@ const ProjectContent = React.memo(() => {
           )}
           <CustomFieldGroups />
           <TaskLists />
+          <div className={styles.contentModule}>
+            <div className={styles.moduleWrapper}>
+              <BlockerSection cardId={card.id} canEdit={canEditDescription} />
+            </div>
+          </div>
           {attachmentIds.length > 0 && (
             <div className={styles.contentModule}>
               <div className={styles.moduleWrapper}>
@@ -577,7 +630,8 @@ const ProjectContent = React.memo(() => {
               canUseLabels ||
               canAddTaskList ||
               canAddAttachment ||
-              canAddCustomFieldGroup) && (
+              canAddCustomFieldGroup ||
+              canEditDescription) && (
               <div className={styles.actions}>
                 <span className={styles.actionsTitle}>{t('action.addToCard')}</span>
                 {canUseMembers && (
@@ -650,6 +704,14 @@ const ProjectContent = React.memo(() => {
                       })}
                     </Button>
                   </AddCustomFieldGroupPopup>
+                )}
+                {canEditDescription && (
+                  <BlockerSectionPopup cardId={card.id} canEdit={canEditDescription}>
+                    <Button fluid className={classNames(styles.actionButton, styles.hidable)}>
+                      <Icon name="ban" className={styles.actionIcon} />
+                      {t('common.blockers', { defaultValue: 'Blockers' })}
+                    </Button>
+                  </BlockerSectionPopup>
                 )}
               </div>
             )}

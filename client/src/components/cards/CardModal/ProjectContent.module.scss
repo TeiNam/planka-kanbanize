@@ -66,11 +66,36 @@
     gap: 4px;
   }
 
+  .dateValueChip {
+    align-items: center;
+    background: #ebeef0;
+    border-radius: 3px;
+    color: #17394d;
+    display: inline-flex;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    gap: 6px;
+    line-height: 20px;
+    padding: 4px 8px;
+  }
+
   .attachments {
     display: inline-block;
     margin: 0 8px 8px 0;
     max-width: 100%;
     vertical-align: top;
+  }
+
+  // 생성자/라벨/날짜/멤버 등을 위→아래로 차곡차곡 쌓는다.
+  .moduleWrapperAttachmentsStacked {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    > .attachments {
+      width: 100%;
+    }
   }
 
   .attachmentsList {
@@ -189,6 +214,14 @@
   .headerTitleWrapper {
     margin: 4px 0;
     padding: 6px 0 0;
+  }
+
+  .trackingId {
+    color: #6b808c;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 16px;
+    margin-bottom: 2px;
   }
 
   .headerWrapper {

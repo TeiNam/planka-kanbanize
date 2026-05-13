@@ -78,10 +78,155 @@
 
   .name {
     color: #17394d;
+    flex: 1;
     font-size: 14px;
+    font-weight: bold;
     line-height: 18px;
-    margin-bottom: 8px;
+    min-width: 0;
+    overflow-wrap: break-word;
     word-wrap: break-word;
+  }
+
+  .titleRow {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .titleRowRight {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 4px;
+  }
+
+  .creator {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  .members {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: 2px;
+    margin-left: auto;
+  }
+
+  .membersMore {
+    background: rgba(9, 30, 66, 0.08);
+    border-radius: 10px;
+    color: #5e6c84;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 18px;
+    margin-left: 2px;
+    padding: 0 6px;
+  }
+
+  .bottomRow {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .bottomIndicators {
+    align-items: center;
+    color: #6a808b;
+    display: flex;
+    font-size: 12px;
+    gap: 10px;
+    line-height: 18px;
+  }
+
+  .indicator {
+    align-items: center;
+    display: inline-flex;
+    gap: 3px;
+    line-height: 18px;
+
+    :global(.icon) {
+      align-items: center;
+      display: inline-flex;
+      height: 18px;
+      line-height: 18px;
+      margin: 0;
+    }
+  }
+
+  .trackingId {
+    color: #8a99a3;
+    font-family: monospace;
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .dates {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 6px;
+  }
+
+  .dateLine {
+    align-items: center;
+    color: #5e6c84;
+    display: flex;
+    font-size: 11px;
+    gap: 4px;
+    line-height: 18px;
+    white-space: nowrap;
+
+    :global(.icon) {
+      display: inline-flex;
+      align-items: center;
+      height: 18px;
+      line-height: 18px;
+      margin: 0;
+    }
+  }
+
+  .dateLabel {
+    font-weight: 600;
+  }
+
+  .dateValue {
+    background: rgba(9, 30, 66, 0.08);
+    border-radius: 3px;
+    color: #17394d;
+    font-family: 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    padding: 0 5px;
+  }
+
+  .dateAge {
+    align-items: center;
+    color: #8a99a3;
+    display: inline-flex;
+    gap: 3px;
+    margin-left: 4px;
+  }
+
+  .dateAgeIcon {
+    margin: 0 !important;
+  }
+
+  .dateAgeOverdue {
+    color: #eb5a46;
+    font-weight: 600;
+  }
+
+  .badges {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    padding-bottom: 12px;
   }
 
   .nameClosed {
@@ -104,7 +249,7 @@
   }
 
   .wrapper {
-    padding: 6px 8px 0;
+    padding: 6px 8px 8px;
 
     &:after {
       clear: both;

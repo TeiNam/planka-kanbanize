@@ -9,6 +9,8 @@ import { Divider, Header, Tab } from 'semantic-ui-react';
 
 import DefaultView from './DefaultView';
 import DefaultCardType from './DefaultCardType';
+import SystemWipLimit from './SystemWipLimit';
+import WipLimitMode from './WipLimitMode';
 import Others from './Others';
 
 import styles from './PreferencesPane.module.scss';
@@ -34,6 +36,18 @@ const PreferencesPane = React.memo(() => {
         </Header>
       </Divider>
       <DefaultCardType />
+      <Divider horizontal>
+        <Header as="h4">
+          {t('common.systemWipLimit', { context: 'title', defaultValue: 'Total WIP limit' })}
+        </Header>
+      </Divider>
+      <SystemWipLimit />
+      <Divider horizontal>
+        <Header as="h4">
+          {t('common.wipLimitMode', { context: 'title', defaultValue: 'WIP limit behavior' })}
+        </Header>
+      </Divider>
+      <WipLimitMode />
       <Divider horizontal>
         <Header as="h4">
           {t('common.others', {

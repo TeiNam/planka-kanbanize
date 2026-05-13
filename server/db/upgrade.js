@@ -333,7 +333,7 @@ const upgradeDatabase = async () => {
               'created_at',
               'updated_at',
             ]),
-            type: List.Types.ACTIVE,
+            type: List.Types.TASK,
           })),
         )
         .transacting(trx);
@@ -514,7 +514,7 @@ const upgradeDatabase = async () => {
                 data.data = {
                   list: {
                     ...action.data.list,
-                    type: List.Types.ACTIVE,
+                    type: List.Types.TASK,
                   },
                 };
 
@@ -523,11 +523,11 @@ const upgradeDatabase = async () => {
                 data.data = {
                   fromList: {
                     ...action.data.fromList,
-                    type: List.Types.ACTIVE,
+                    type: List.Types.TASK,
                   },
                   toList: {
                     ...action.data.toList,
-                    type: List.Types.ACTIVE,
+                    type: List.Types.TASK,
                   },
                 };
 
@@ -583,11 +583,11 @@ const upgradeDatabase = async () => {
                 data: {
                   fromList: {
                     ...action.data.fromList,
-                    type: List.Types.ACTIVE,
+                    type: List.Types.TASK,
                   },
                   toList: {
                     ...action.data.toList,
-                    type: List.Types.ACTIVE,
+                    type: List.Types.TASK,
                   },
                   card: _.pick(card, ['name']),
                 },

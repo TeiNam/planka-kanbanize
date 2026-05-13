@@ -9,6 +9,11 @@ services:
     restart: on-failure
     volumes:
       - ./server:/app
+      # 이미지에 만들어둔 Python venv를 호스트 마운트로부터 격리 (anonymous volume)
+      - /app/.venv
+      # 호스트(macOS)의 node_modules가 Alpine 컨테이너에 주입되지 않도록 격리.
+      # 컨테이너 시작 시 npm install이 빈 볼륨에 Linux용 바이너리를 설치한다.
+      - /app/node_modules
     ports:
       - 1337:1337
     environment:
@@ -110,6 +115,8 @@ services:
     restart: on-failure
     volumes:
       - ./client:/app
+      # 호스트(macOS)의 node_modules가 Alpine 컨테이너에 주입되지 않도록 격리.
+      - /app/node_modules
     ports:
       - 3000:3000
     environment:

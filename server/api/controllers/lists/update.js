@@ -33,9 +33,9 @@
  *                 example: "1357158568008091265"
  *               type:
  *                 type: string
- *                 enum: [active, closed]
+ *                 enum: [backlog, task, closed, discard]
  *                 description: Type/status of the list
- *                 example: active
+ *                 example: task
  *               position:
  *                 type: number
  *                 minimum: 0
@@ -86,6 +86,15 @@ const Errors = {
   BOARD_NOT_FOUND: {
     boardNotFound: 'Board not found',
   },
+  BACKLOG_ALREADY_EXISTS: {
+    backlogAlreadyExists: 'Backlog list already exists in this board',
+  },
+  BACKLOG_MUST_BE_LEFTMOST: {
+    backlogMustBeLeftmost: 'Backlog must be the leftmost list',
+  },
+  WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT: {
+    wipLimitSumExceedsSystemLimit: 'Sum of column WIP limits exceeds Total WIP limit',
+  },
 };
 
 module.exports = {
@@ -113,6 +122,33 @@ module.exports = {
       isIn: List.COLORS,
       allowNull: true,
     },
+    wipLimit: {
+      type: 'number',
+      min: 1,
+      max: 100,
+      allowNull: true,
+    },
+    subColumnType: {
+      type: 'string',
+      isIn: ['active', 'done'],
+      allowNull: true,
+    },
+    isBuffer: {
+      type: 'boolean',
+    },
+    pullCriteria: {
+      type: 'string',
+      maxLength: 500,
+      allowNull: true,
+    },
+    policy: {
+      type: 'string',
+      maxLength: 500,
+      allowNull: true,
+    },
+    enableSubColumns: {
+      type: 'boolean',
+    },
   },
 
   exits: {
@@ -124,6 +160,15 @@ module.exports = {
     },
     boardNotFound: {
       responseType: 'notFound',
+    },
+    backlogAlreadyExists: {
+      responseType: 'unprocessableEntity',
+    },
+    backlogMustBeLeftmost: {
+      responseType: 'unprocessableEntity',
+    },
+    wipLimitSumExceedsSystemLimit: {
+      responseType: 'unprocessableEntity',
     },
   },
 
@@ -176,20 +221,38 @@ module.exports = {
       }
     }
 
-    const values = _.pick(inputs, ['type', 'position', 'name', 'color']);
+    const values = _.pick(inputs, [
+      'type',
+      'position',
+      'name',
+      'color',
+      'wipLimit',
+      'subColumnType',
+      'isBuffer',
+      'pullCriteria',
+      'policy',
+    ]);
 
-    list = await sails.helpers.lists.updateOne.with({
-      project,
-      board,
-      record: list,
-      values: {
-        ...values,
-        project: nextProject,
-        board: nextBoard,
-      },
-      actorUser: currentUser,
-      request: this.req,
-    });
+    list = await sails.helpers.lists.updateOne
+      .with({
+        project,
+        board,
+        record: list,
+        values: {
+          ...values,
+          project: nextProject,
+          board: nextBoard,
+        },
+        enableSubColumns: inputs.enableSubColumns,
+        actorUser: currentUser,
+        request: this.req,
+      })
+      .intercept('backlogAlreadyExists', () => Errors.BACKLOG_ALREADY_EXISTS)
+      .intercept('backlogMustBeLeftmost', () => Errors.BACKLOG_MUST_BE_LEFTMOST)
+      .intercept(
+        'wipLimitSumExceedsSystemLimit',
+        () => Errors.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT,
+      );
 
     if (!list) {
       throw Errors.LIST_NOT_FOUND;

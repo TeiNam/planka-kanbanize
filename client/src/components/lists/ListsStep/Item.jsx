@@ -37,7 +37,7 @@ const Item = React.memo(({ id, isActive, onSelect }) => {
         className={classNames(styles.name, isActive && styles.nameActive)}
         onClick={handleSelectClick}
       >
-        {list.type !== ListTypes.ACTIVE && (
+        {list.type !== ListTypes.TASK && (
           <Icon name={ListTypeIcons[list.type]} className={styles.nameIcon} />
         )}
         {list.name || t(`common.${list.type}`)}

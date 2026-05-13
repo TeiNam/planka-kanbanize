@@ -35,6 +35,8 @@ import ListsStep from '../../lists/ListsStep';
 import Attachments from '../../attachments/Attachments';
 import AddAttachmentStep from '../../attachments/AddAttachmentStep';
 import AddCustomFieldGroupStep from '../../custom-field-groups/AddCustomFieldGroupStep';
+import BlockerSection from '../BlockerSection/BlockerSection';
+import BlockerSectionStep from '../BlockerSection/BlockerSectionStep';
 
 import styles from './StoryContent.module.scss';
 
@@ -68,6 +70,7 @@ const StoryContent = React.memo(() => {
 
   const isInArchiveList = list.type === ListTypes.ARCHIVE;
   const isInTrashList = list.type === ListTypes.TRASH;
+  const isInDiscardList = list.type === ListTypes.DISCARD;
 
   const {
     canEditType,
@@ -277,6 +280,7 @@ const StoryContent = React.memo(() => {
   const ListsPopup = usePopupInClosableContext(ListsStep);
   const AddAttachmentPopup = usePopupInClosableContext(AddAttachmentStep);
   const AddCustomFieldGroupPopup = usePopupInClosableContext(AddCustomFieldGroupStep);
+  const BlockerSectionPopup = usePopupInClosableContext(BlockerSectionStep);
   const MoreActionsPopup = usePopupInClosableContext(MoreActionsStep);
   const ConfirmationPopup = usePopupInClosableContext(ConfirmationStep);
 
@@ -290,6 +294,9 @@ const StoryContent = React.memo(() => {
               className={classNames(styles.moduleIcon, styles.moduleIconTitle)}
             />
             <div className={styles.headerTitleWrapper}>
+              {card.id && (
+                <div className={styles.trackingId}>{`#${String(card.id).slice(-6)}`}</div>
+              )}
               {canEditName ? (
                 <NameField defaultValue={card.name} size="large" onUpdate={handleNameUpdate} />
               ) : (
@@ -326,8 +333,21 @@ const StoryContent = React.memo(() => {
             }}
             onBeforeOpen={handleBeforeGalleryOpen}
           >
-            {(board.alwaysDisplayCardCreator || labelIds.length > 0 || coverAttachment) && (
-              <div className={classNames(styles.moduleWrapper, styles.moduleWrapperAttachments)}>
+            {(board.alwaysDisplayCardCreator ||
+              labelIds.length > 0 ||
+              userIds.length > 0 ||
+              card.createdAt ||
+              card.startDate ||
+              card.dueDate ||
+              card.completedAt ||
+              coverAttachment) && (
+              <div
+                className={classNames(
+                  styles.moduleWrapper,
+                  styles.moduleWrapperAttachments,
+                  styles.moduleWrapperAttachmentsStacked,
+                )}
+              >
                 {coverAttachment && (
                   <div className={styles.coverWrapper}>
                     <GalleryItem
@@ -393,6 +413,85 @@ const StoryContent = React.memo(() => {
                     )}
                   </div>
                 )}
+                {card.createdAt && (
+                  <div className={styles.attachments}>
+                    <span className={styles.attachment}>
+                      <span className={styles.dateValueChip}>
+                        <Icon name="calendar outline" />
+                        <span className={styles.dateValueLabel}>생성일</span>
+                        {`${new Date(card.createdAt).getMonth() + 1}/${new Date(card.createdAt).getDate()}`}
+                      </span>
+                    </span>
+                  </div>
+                )}
+                {card.startDate && (
+                  <div className={styles.attachments}>
+                    <span className={styles.attachment}>
+                      <span className={styles.dateValueChip}>
+                        <Icon name="play" />
+                        <span className={styles.dateValueLabel}>시작일</span>
+                        {`${new Date(card.startDate).getMonth() + 1}/${new Date(card.startDate).getDate()}`}
+                      </span>
+                    </span>
+                  </div>
+                )}
+                {card.dueDate && (
+                  <div className={styles.attachments}>
+                    <span className={styles.attachment}>
+                      <span className={styles.dateValueChip}>
+                        <Icon name="calendar alternate outline" />
+                        <span className={styles.dateValueLabel}>마감일</span>
+                        {`${new Date(card.dueDate).getMonth() + 1}/${new Date(card.dueDate).getDate()}`}
+                      </span>
+                    </span>
+                  </div>
+                )}
+                {card.completedAt && (
+                  <div className={styles.attachments}>
+                    <span className={styles.attachment}>
+                      <span className={styles.dateValueChip}>
+                        <Icon name={isInDiscardList ? 'trash alternate outline' : 'check'} />
+                        <span className={styles.dateValueLabel}>
+                          {isInDiscardList ? '폐기일' : '완료일'}
+                        </span>
+                        {`${new Date(card.completedAt).getMonth() + 1}/${new Date(card.completedAt).getDate()}`}
+                      </span>
+                    </span>
+                  </div>
+                )}
+                {userIds.length > 0 && (
+                  <div className={styles.attachments}>
+                    {userIds.map((userId) => (
+                      <span key={userId} className={styles.attachment}>
+                        {canUseMembers ? (
+                          <BoardMembershipsPopup
+                            currentUserIds={userIds}
+                            onUserSelect={handleUserSelect}
+                            onUserDeselect={handleUserDeselect}
+                          >
+                            <UserAvatar id={userId} size="tiny" />
+                          </BoardMembershipsPopup>
+                        ) : (
+                          <UserAvatar id={userId} size="tiny" />
+                        )}
+                      </span>
+                    ))}
+                    {canUseMembers && (
+                      <BoardMembershipsPopup
+                        currentUserIds={userIds}
+                        onUserSelect={handleUserSelect}
+                        onUserDeselect={handleUserDeselect}
+                      >
+                        <button
+                          type="button"
+                          className={classNames(styles.attachment, styles.dueDate)}
+                        >
+                          <Icon name="add" size="small" className={styles.addAttachment} />
+                        </button>
+                      </BoardMembershipsPopup>
+                    )}
+                  </div>
+                )}
               </div>
             )}
             {(card.description || canEditDescription) && (
@@ -454,6 +553,11 @@ const StoryContent = React.memo(() => {
             )}
           </Gallery>
           <CustomFieldGroups />
+          <div className={styles.contentModule}>
+            <div className={styles.moduleWrapper}>
+              <BlockerSection cardId={card.id} canEdit={canEditDescription} />
+            </div>
+          </div>
           {attachmentIds.length > 0 && (
             <div className={styles.contentModule}>
               <div className={styles.moduleWrapper}>
@@ -494,7 +598,7 @@ const StoryContent = React.memo(() => {
                 )}
               </div>
             </div>
-            {(canUseMembers || canUseLabels || canAddAttachment || canAddCustomFieldGroup) && (
+            {(canUseMembers || canUseLabels || canAddAttachment || canAddCustomFieldGroup || canEditDescription) && (
               <div className={styles.actions}>
                 <span className={styles.actionsTitle}>{t('action.addToCard')}</span>
                 {canUseLabels && (
@@ -539,6 +643,14 @@ const StoryContent = React.memo(() => {
                       {t('common.members')}
                     </Button>
                   </BoardMembershipsPopup>
+                )}
+                {canEditDescription && (
+                  <BlockerSectionPopup cardId={card.id} canEdit={canEditDescription}>
+                    <Button fluid className={classNames(styles.actionButton, styles.hidable)}>
+                      <Icon name="ban" className={styles.actionIcon} />
+                      {t('common.blockers', { defaultValue: 'Blockers' })}
+                    </Button>
+                  </BlockerSectionPopup>
                 )}
               </div>
             )}

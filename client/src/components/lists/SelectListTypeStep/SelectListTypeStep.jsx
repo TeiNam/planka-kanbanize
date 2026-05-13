@@ -9,14 +9,16 @@ import { useTranslation } from 'react-i18next';
 import { Button, Form, Icon, Menu } from 'semantic-ui-react';
 import { Popup } from '../../../lib/custom-ui';
 
-import { ListTypes } from '../../../constants/Enums';
+import { KanbanListTypes, ListTypes } from '../../../constants/Enums';
 import { ListTypeIcons } from '../../../constants/Icons';
 
 import styles from './SelectListTypeStep.module.scss';
 
 const DESCRIPTION_BY_TYPE = {
-  [ListTypes.ACTIVE]: 'common.cardsOnThisListAreReadyToBeWorkedOn',
+  [ListTypes.BACKLOG]: 'common.cardsOnThisListAreNotYetCommitted',
+  [ListTypes.TASK]: 'common.cardsOnThisListAreReadyToBeWorkedOn',
   [ListTypes.CLOSED]: 'common.cardsOnThisListAreCompleteAndReadyToBeArchived',
+  [ListTypes.DISCARD]: 'common.cardsOnThisListHaveBeenDiscarded',
 };
 
 const SelectListTypeStep = React.memo(
@@ -57,7 +59,7 @@ const SelectListTypeStep = React.memo(
         <Popup.Content>
           <Form onSubmit={handleSubmit}>
             <Menu secondary vertical className={styles.menu}>
-              {[ListTypes.ACTIVE, ListTypes.CLOSED].map((type) => (
+              {KanbanListTypes.map((type) => (
                 <Menu.Item
                   key={type}
                   value={type}

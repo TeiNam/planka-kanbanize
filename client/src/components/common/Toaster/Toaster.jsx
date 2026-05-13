@@ -12,6 +12,12 @@ import NotEnoughStorageToast from './NotEnoughStorageToast';
 import EmptyTrashToast from './EmptyTrashToast';
 import SourceCardNotCopyableToast from './SourceCardNotCopyableToast';
 import SourceCardNotMovableToast from './SourceCardNotMovableToast';
+import WipLimitExceededToast from './WipLimitExceededToast';
+import WipLimitWarnToast from './WipLimitWarnToast';
+import SystemWipLimitExceededToast from './SystemWipLimitExceededToast';
+import SystemWipLimitWarnToast from './SystemWipLimitWarnToast';
+import WipLimitSumExceedsSystemLimitToast from './WipLimitSumExceedsSystemLimitToast';
+import CardHasActiveBlockersToast from './CardHasActiveBlockersToast';
 
 const TOAST_BY_TYPE = {
   [ToastTypes.FILE_IS_TOO_BIG]: FileIsTooBigToast,
@@ -19,6 +25,12 @@ const TOAST_BY_TYPE = {
   [ToastTypes.EMPTY_TRASH]: EmptyTrashToast,
   [ToastTypes.SOURCE_CARD_NOT_COPYABLE]: SourceCardNotCopyableToast,
   [ToastTypes.SOURCE_CARD_NOT_MOVABLE]: SourceCardNotMovableToast,
+  [ToastTypes.WIP_LIMIT_EXCEEDED]: WipLimitExceededToast,
+  [ToastTypes.WIP_LIMIT_WARN]: WipLimitWarnToast,
+  [ToastTypes.SYSTEM_WIP_LIMIT_EXCEEDED]: SystemWipLimitExceededToast,
+  [ToastTypes.SYSTEM_WIP_LIMIT_WARN]: SystemWipLimitWarnToast,
+  [ToastTypes.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT]: WipLimitSumExceedsSystemLimitToast,
+  [ToastTypes.CARD_HAS_ACTIVE_BLOCKERS]: CardHasActiveBlockersToast,
 };
 
 const Toaster = React.memo(() => (

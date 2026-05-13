@@ -33,9 +33,9 @@
  *             properties:
  *               type:
  *                 type: string
- *                 enum: [active, closed]
+ *                 enum: [backlog, task, closed, discard]
  *                 description: Type/status of the list
- *                 example: active
+ *                 example: task
  *               position:
  *                 type: number
  *                 minimum: 0
@@ -77,6 +77,15 @@ const Errors = {
   BOARD_NOT_FOUND: {
     boardNotFound: 'Board not found',
   },
+  BACKLOG_ALREADY_EXISTS: {
+    backlogAlreadyExists: 'Backlog list already exists in this board',
+  },
+  BACKLOG_MUST_BE_LEFTMOST: {
+    backlogMustBeLeftmost: 'Backlog must be the leftmost list',
+  },
+  WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT: {
+    wipLimitSumExceedsSystemLimit: 'Sum of column WIP limits exceeds Total WIP limit',
+  },
 };
 
 module.exports = {
@@ -109,6 +118,15 @@ module.exports = {
     boardNotFound: {
       responseType: 'notFound',
     },
+    backlogAlreadyExists: {
+      responseType: 'unprocessableEntity',
+    },
+    backlogMustBeLeftmost: {
+      responseType: 'unprocessableEntity',
+    },
+    wipLimitSumExceedsSystemLimit: {
+      responseType: 'unprocessableEntity',
+    },
   },
 
   async fn(inputs) {
@@ -133,15 +151,22 @@ module.exports = {
 
     const values = _.pick(inputs, ['type', 'position', 'name']);
 
-    const list = await sails.helpers.lists.createOne.with({
-      project,
-      values: {
-        ...values,
-        board,
-      },
-      actorUser: currentUser,
-      request: this.req,
-    });
+    const list = await sails.helpers.lists.createOne
+      .with({
+        project,
+        values: {
+          ...values,
+          board,
+        },
+        actorUser: currentUser,
+        request: this.req,
+      })
+      .intercept('backlogAlreadyExists', () => Errors.BACKLOG_ALREADY_EXISTS)
+      .intercept('backlogMustBeLeftmost', () => Errors.BACKLOG_MUST_BE_LEFTMOST)
+      .intercept(
+        'wipLimitSumExceedsSystemLimit',
+        () => Errors.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT,
+      );
 
     return {
       item: list,

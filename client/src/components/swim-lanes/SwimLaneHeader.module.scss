@@ -1,0 +1,99 @@
+/*!
+ * Copyright (c) 2024 PLANKA Software GmbH
+ * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
+ */
+
+:global(#app) {
+  .wrapper {
+    align-items: center;
+    background: #ebecf0;
+    border-bottom: 1px solid #dfe1e6;
+    display: flex;
+    justify-content: space-between;
+    min-height: 40px;
+    padding: 6px 8px;
+  }
+
+  .wrapperExceeded {
+    background: #ffebe6;
+    border-bottom-color: #ff5630;
+  }
+
+  .wrapperExpedite {
+    border-left: 3px solid #ff5630;
+  }
+
+  .info {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .expediteIcon {
+    color: #ff5630;
+    margin-right: 4px;
+  }
+
+  .name {
+    color: #172b4d;
+    font-size: 14px;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .categoryBadge {
+    background: #dfe1e6;
+    border-radius: 3px;
+    color: #5e6c84;
+    font-size: 11px;
+    margin-left: 8px;
+    padding: 2px 6px;
+    white-space: nowrap;
+  }
+
+  .right {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+
+  .wipIndicator {
+    background: #dfe1e6;
+    border-radius: 3px;
+    color: #5e6c84;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 4px;
+    padding: 2px 6px;
+  }
+
+  .wipIndicatorExceeded {
+    background: #ff5630;
+    color: #fff;
+  }
+
+  .settingsButton {
+    background: none;
+    box-shadow: none;
+    color: #6b778c;
+    height: 28px;
+    margin: 0;
+    opacity: 0;
+    padding: 0;
+    width: 28px;
+
+    &:hover {
+      background: rgba(9, 30, 66, 0.08);
+      color: #172b4d;
+    }
+  }
+
+  .wrapper:hover .settingsButton {
+    opacity: 1;
+  }
+}

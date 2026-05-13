@@ -197,6 +197,19 @@ module.exports = {
       type: 'ref',
       columnName: 'list_changed_at',
     },
+    priority: {
+      type: 'string',
+      isIn: ['H', 'M', 'L'],
+      allowNull: true,
+    },
+    startDate: {
+      type: 'ref',
+      columnName: 'start_date',
+    },
+    completedAt: {
+      type: 'ref',
+      columnName: 'completed_at',
+    },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
@@ -229,6 +242,14 @@ module.exports = {
       model: 'Attachment',
       columnName: 'cover_attachment_id',
     },
+    swimLaneId: {
+      model: 'SwimLane',
+      columnName: 'swim_lane_id',
+    },
+    classOfServiceId: {
+      model: 'ClassOfService',
+      columnName: 'class_of_service_id',
+    },
     subscriptionUsers: {
       collection: 'User',
       via: 'cardId',
@@ -259,6 +280,22 @@ module.exports = {
     actions: {
       collection: 'Action',
       via: 'cardId',
+    },
+    blockers: {
+      collection: 'Blocker',
+      via: 'cardId',
+    },
+    decorators: {
+      collection: 'CardDecorator',
+      via: 'cardId',
+    },
+    parentRelationships: {
+      collection: 'CardRelationship',
+      via: 'childCardId',
+    },
+    childRelationships: {
+      collection: 'CardRelationship',
+      via: 'parentCardId',
     },
   },
 };

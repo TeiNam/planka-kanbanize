@@ -96,6 +96,14 @@ export function* handleLocationChange() {
   let customFields2;
   let customFieldValues1;
   let customFieldValues2;
+  let swimLanes;
+  let commitmentPoints;
+  let classesOfService;
+  let decorators;
+  let cardDecorators;
+  let blockers;
+  let blockerLinkedCards;
+  let cardRelationships;
   let notificationsToDelete;
 
   switch (pathsMatch.pattern.path) {
@@ -113,10 +121,13 @@ export function* handleLocationChange() {
       break;
     }
     case Paths.BOARDS:
+    case Paths.BOARDS_METRICS:
       if (currentBoard) {
         ({ id: currentBoardId } = currentBoard);
 
-        if (currentBoard.isFetching === null) {
+        // isFetching이 null(첫 진입)이거나 false(완료된 fetch가 있었음 — 새로고침 등)일 때
+        // 항상 다시 fetch한다. true(진행 중)일 때만 건너뛴다.
+        if (currentBoard.isFetching !== true) {
           yield put(actions.handleLocationChange.fetchBoard(currentBoard.id));
 
           try {
@@ -137,6 +148,14 @@ export function* handleLocationChange() {
                 customFieldGroups: customFieldGroups1,
                 customFields: customFields1,
                 customFieldValues: customFieldValues1,
+                swimLanes,
+                commitmentPoints,
+                classesOfService,
+                decorators,
+                cardDecorators,
+                blockers,
+                blockerLinkedCards,
+                cardRelationships,
               },
             } = yield call(request, api.getBoard, currentBoard.id, true));
           } catch {
@@ -173,38 +192,53 @@ export function* handleLocationChange() {
 
         if (card) {
           ({ id: currentCardId } = card);
-
           currentBoard = yield select(selectors.selectBoardById, card.boardId);
-
           if (currentBoard) {
             ({ id: currentBoardId } = currentBoard);
-
-            if (currentBoard.isFetching === null) {
-              try {
-                ({
-                  item: board,
-                  included: {
-                    projects,
-                    boardMemberships,
-                    labels,
-                    lists,
-                    cards,
-                    users: users2,
-                    cardMemberships: cardMemberships2,
-                    cardLabels: cardLabels2,
-                    taskLists: taskLists2,
-                    tasks: tasks2,
-                    attachments: attachments2,
-                    customFieldGroups: customFieldGroups2,
-                    customFields: customFields2,
-                    customFieldValues: customFieldValues2,
-                  },
-                } = yield call(request, api.getBoard, card.boardId, true));
-              } catch {
-                /* empty */
-              }
-            }
           }
+        }
+      }
+
+      // 카드 경로에서 직접 새로고침하면 cardId가 이미 store에 있어 위의 if(!currentCardId)
+      // 분기를 타지 않는다. 그래서 보드 fetch가 일어나지 않아 blockers 등 새 도메인이
+      // store에 적재되지 않는 문제가 있었다. cardId 유무와 무관하게 보드가 아직 안
+      // 가져와졌으면(isFetching === null) 한 번 fetch한다.
+      if (currentCardId && !currentBoard) {
+        currentBoard = yield select(selectors.selectCurrentBoard);
+      }
+      if (currentBoard && currentBoard.isFetching === null && !board) {
+        ({ id: currentBoardId } = currentBoard);
+        yield put(actions.handleLocationChange.fetchBoard(currentBoard.id));
+        try {
+          ({
+            item: board,
+            included: {
+              projects,
+              boardMemberships,
+              labels,
+              lists,
+              cards,
+              users: users2,
+              cardMemberships: cardMemberships2,
+              cardLabels: cardLabels2,
+              taskLists: taskLists2,
+              tasks: tasks2,
+              attachments: attachments2,
+              customFieldGroups: customFieldGroups2,
+              customFields: customFields2,
+              customFieldValues: customFieldValues2,
+              swimLanes,
+              commitmentPoints,
+              classesOfService,
+              decorators,
+              cardDecorators,
+              blockers,
+              blockerLinkedCards,
+              cardRelationships,
+            },
+          } = yield call(request, api.getBoard, currentBoard.id, true));
+        } catch {
+          /* empty */
         }
       }
 
@@ -251,6 +285,14 @@ export function* handleLocationChange() {
       mergeRecords(customFields1, customFields2),
       mergeRecords(customFieldValues1, customFieldValues2),
       notificationsToDelete,
+      swimLanes,
+      commitmentPoints,
+      classesOfService,
+      decorators,
+      cardDecorators,
+      blockers,
+      blockerLinkedCards,
+      cardRelationships,
     ),
   );
 }

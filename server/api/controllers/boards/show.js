@@ -205,6 +205,10 @@ module.exports = {
     const boardMemberships = await BoardMembership.qm.getByBoardId(board.id);
     const labels = await Label.qm.getByBoardId(board.id);
     const lists = await List.qm.getByBoardId(board.id);
+    const swimLanes = await SwimLane.qm.getByBoardId(board.id);
+    const commitmentPoints = await CommitmentPoint.qm.getByBoardId(board.id);
+    const classesOfService = await ClassOfService.qm.getByBoardId(board.id);
+    const decorators = await Decorator.qm.getByBoardId(board.id);
 
     const finiteLists = lists.filter((list) => sails.helpers.lists.isFinite(list));
     const finiteListIds = sails.helpers.utils.mapRecords(finiteLists);
@@ -220,6 +224,11 @@ module.exports = {
     const users = await User.qm.getByIds(userIds);
     const cardMemberships = await CardMembership.qm.getByCardIds(cardIds);
     const cardLabels = await CardLabel.qm.getByCardIds(cardIds);
+    const cardDecorators = await CardDecorator.qm.getByCardIds(cardIds);
+    const blockers = await Blocker.qm.getByCardIds(cardIds);
+    const blockerIds = sails.helpers.utils.mapRecords(blockers);
+    const blockerLinkedCards = await BlockerLinkedCard.qm.getByBlockerIds(blockerIds);
+    const cardRelationships = await CardRelationship.qm.getByParentCardIds(cardIds);
 
     const taskLists = await TaskList.qm.getByCardIds(cardIds);
     const taskListIds = sails.helpers.utils.mapRecords(taskLists);
@@ -272,6 +281,14 @@ module.exports = {
         customFieldGroups,
         customFields,
         customFieldValues,
+        swimLanes,
+        commitmentPoints,
+        classesOfService,
+        decorators,
+        cardDecorators,
+        blockers,
+        blockerLinkedCards,
+        cardRelationships,
         users: sails.helpers.users.presentMany(users, currentUser),
         projects: [project],
         attachments: sails.helpers.attachments.presentMany(attachments),

@@ -49,6 +49,7 @@ export const BoardViewIcons = {
   [BoardViews.KANBAN]: 'columns',
   [BoardViews.GRID]: 'th',
   [BoardViews.LIST]: 'unordered list',
+  [BoardViews.METRICS]: 'chart bar',
 };
 
 export const BoardContextIcons = {
@@ -63,8 +64,10 @@ export const BoardMembershipRoleIcons = {
 };
 
 export const ListTypeIcons = {
-  [ListTypes.ACTIVE]: 'lightbulb',
+  [ListTypes.BACKLOG]: 'inbox',
+  [ListTypes.TASK]: 'lightbulb',
   [ListTypes.CLOSED]: 'flag checkered',
+  [ListTypes.DISCARD]: 'ban',
   [ListTypes.ARCHIVE]: 'archive',
   [ListTypes.TRASH]: 'trash alternate',
 };

@@ -29,6 +29,12 @@ import comments from './comments';
 import activities from './activities';
 import notifications from './notifications';
 import notificationServices from './notification-services';
+import swimLanes from './swim-lanes';
+import commitmentPoints from './commitment-points';
+import classesOfService from './classes-of-service';
+import blockers from './blockers';
+import blockerLinkedCards from './blocker-linked-cards';
+import metrics from './metrics';
 
 export default {
   ...router,
@@ -57,4 +63,10 @@ export default {
   ...activities,
   ...notifications,
   ...notificationServices,
+  ...swimLanes,
+  ...commitmentPoints,
+  ...classesOfService,
+  ...blockers,
+  ...blockerLinkedCards,
+  ...metrics,
 };

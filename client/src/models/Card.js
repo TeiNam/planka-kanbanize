@@ -78,6 +78,19 @@ export default class extends BaseModel {
       as: 'coverAttachment',
       relatedName: 'coveredCard',
     }),
+    swimLaneId: fk({
+      to: 'SwimLane',
+      as: 'swimLane',
+      relatedName: 'cards',
+    }),
+    classOfServiceId: fk({
+      to: 'ClassOfService',
+      as: 'classOfService',
+      relatedName: 'cards',
+    }),
+    priority: attr(),
+    startDate: attr(),
+    completedAt: attr(),
     users: many('User', 'cards'),
     labels: many('Label', 'cards'),
   };
@@ -99,13 +112,19 @@ export default class extends BaseModel {
 
         if (payload.cardMemberships) {
           payload.cardMemberships.forEach(({ cardId, userId }) => {
-            Card.withId(cardId).users.add(userId);
+            const cardModel = Card.withId(cardId);
+            if (cardModel && !cardModel.users.filter({ id: userId }).exists()) {
+              cardModel.users.add(userId);
+            }
           });
         }
 
         if (payload.cardLabels) {
           payload.cardLabels.forEach(({ cardId, labelId }) => {
-            Card.withId(cardId).labels.add(labelId);
+            const cardModel = Card.withId(cardId);
+            if (cardModel && !cardModel.labels.filter({ id: labelId }).exists()) {
+              cardModel.labels.add(labelId);
+            }
           });
         }
 
@@ -174,11 +193,17 @@ export default class extends BaseModel {
         });
 
         payload.cardMemberships.forEach(({ cardId, userId }) => {
-          Card.withId(cardId).users.add(userId);
+          const cardModel = Card.withId(cardId);
+          if (cardModel && !cardModel.users.filter({ id: userId }).exists()) {
+            cardModel.users.add(userId);
+          }
         });
 
         payload.cardLabels.forEach(({ cardId, labelId }) => {
-          Card.withId(cardId).labels.add(labelId);
+          const cardModel = Card.withId(cardId);
+          if (cardModel && !cardModel.labels.filter({ id: labelId }).exists()) {
+            cardModel.labels.add(labelId);
+          }
         });
 
         break;

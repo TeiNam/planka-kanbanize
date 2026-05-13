@@ -36,9 +36,9 @@
  *           example: "1357158568008091265"
  *         type:
  *           type: string
- *           enum: [active, closed, archive, trash]
+ *           enum: [backlog, task, closed, discard, archive, trash]
  *           description: Type/status of the list
- *           example: active
+ *           example: task
  *         position:
  *           type: number
  *           nullable: true
@@ -70,8 +70,10 @@
  */
 
 const Types = {
-  ACTIVE: 'active',
+  BACKLOG: 'backlog',
+  TASK: 'task',
   CLOSED: 'closed',
+  DISCARD: 'discard',
   ARCHIVE: 'archive',
   TRASH: 'trash',
 };
@@ -93,13 +95,20 @@ const SortOrders = {
   DESC: 'desc',
 };
 
-const FINITE_TYPES = [Types.ACTIVE, Types.CLOSED];
+// 보드 본문에 표시되는 일반 칸반 컬럼들 (백로그, 태스크, 완료, 디스카드)
+const KANBAN_TYPES = [Types.BACKLOG, Types.TASK, Types.CLOSED, Types.DISCARD];
 
-const KANBAN_TYPES = [Types.ACTIVE, Types.CLOSED];
+// "유한" 보드 뷰(FiniteContent)에 노출되는 타입들 — KANBAN_TYPES와 동일하게 유지
+const FINITE_TYPES = KANBAN_TYPES;
+
+// WIP 카운트 대상: 태스크 컬럼만 — 백로그/완료/디스카드/아카이브/휴지통은 제외
+const WIP_COUNT_TYPES = [Types.TASK];
 
 const TYPE_STATE_BY_TYPE = {
-  [Types.ACTIVE]: TypeStates.OPENED,
-  [Types.CLOSED]: Types.CLOSED,
+  [Types.BACKLOG]: TypeStates.OPENED,
+  [Types.TASK]: TypeStates.OPENED,
+  [Types.CLOSED]: TypeStates.CLOSED,
+  [Types.DISCARD]: TypeStates.CLOSED,
 };
 
 const COLORS = [
@@ -122,6 +131,7 @@ module.exports = {
   SortOrders,
   FINITE_TYPES,
   KANBAN_TYPES,
+  WIP_COUNT_TYPES,
   TYPE_STATE_BY_TYPE,
   COLORS,
 
@@ -149,6 +159,31 @@ module.exports = {
       isIn: COLORS,
       allowNull: true,
     },
+    wipLimit: {
+      type: 'number',
+      allowNull: true,
+      columnName: 'wip_limit',
+    },
+    subColumnType: {
+      type: 'string',
+      isIn: ['active', 'done'],
+      allowNull: true,
+      columnName: 'sub_column_type',
+    },
+    isBuffer: {
+      type: 'boolean',
+      defaultsTo: false,
+      columnName: 'is_buffer',
+    },
+    pullCriteria: {
+      type: 'string',
+      allowNull: true,
+      columnName: 'pull_criteria',
+    },
+    policy: {
+      type: 'string',
+      allowNull: true,
+    },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
@@ -163,9 +198,17 @@ module.exports = {
       required: true,
       columnName: 'board_id',
     },
+    parentListId: {
+      model: 'List',
+      columnName: 'parent_list_id',
+    },
     cards: {
       collection: 'Card',
       via: 'listId',
+    },
+    subColumns: {
+      collection: 'List',
+      via: 'parentListId',
     },
   },
 };

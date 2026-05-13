@@ -1,0 +1,26 @@
+/*!
+ * Copyright (c) 2024 PLANKA Software GmbH
+ * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
+ */
+
+:global(#app) {
+  .wrapper {
+    width: 100%;
+    min-height: 320px;
+  }
+
+  .emptyState {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    background: #f9f9f9;
+    border-radius: 4px;
+    border: 1px dashed #d4d4d4;
+  }
+
+  .emptyMessage {
+    color: #999;
+    font-size: 14px;
+  }
+}
