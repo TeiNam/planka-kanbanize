@@ -18,6 +18,7 @@ import SystemWipLimitExceededToast from './SystemWipLimitExceededToast';
 import SystemWipLimitWarnToast from './SystemWipLimitWarnToast';
 import WipLimitSumExceedsSystemLimitToast from './WipLimitSumExceedsSystemLimitToast';
 import CardHasActiveBlockersToast from './CardHasActiveBlockersToast';
+import ExpediteLaneLimitExceededToast from './ExpediteLaneLimitExceededToast';
 
 const TOAST_BY_TYPE = {
   [ToastTypes.FILE_IS_TOO_BIG]: FileIsTooBigToast,
@@ -31,6 +32,7 @@ const TOAST_BY_TYPE = {
   [ToastTypes.SYSTEM_WIP_LIMIT_WARN]: SystemWipLimitWarnToast,
   [ToastTypes.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT]: WipLimitSumExceedsSystemLimitToast,
   [ToastTypes.CARD_HAS_ACTIVE_BLOCKERS]: CardHasActiveBlockersToast,
+  [ToastTypes.EXPEDITE_LANE_LIMIT_EXCEEDED]: ExpediteLaneLimitExceededToast,
 };
 
 const Toaster = React.memo(() => (

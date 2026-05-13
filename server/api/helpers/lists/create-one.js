@@ -31,9 +31,12 @@ module.exports = {
   async fn(inputs) {
     const { values } = inputs;
 
-    const lists = await sails.helpers.boards.getKanbanListsById(values.board.id);
+    const allLists = await sails.helpers.boards.getKanbanListsById(values.board.id);
+    // 스윔레인 단위로 컬럼 스코프 (swimLaneId=null이면 일반 보드 스코프)
+    const targetLaneId = _.isUndefined(values.swimLaneId) ? null : values.swimLaneId;
+    const lists = allLists.filter((l) => (l.swimLaneId || null) === targetLaneId);
 
-    // backlog 유일성 검증: 같은 보드 최상위에 backlog가 이미 있으면 차단
+    // backlog 유일성 검증: 같은 레인 최상위에 backlog가 이미 있으면 차단
     if (values.type === List.Types.BACKLOG) {
       const existingBacklog = lists.find(
         (l) => l.parentListId === null && l.type === List.Types.BACKLOG,
@@ -43,7 +46,7 @@ module.exports = {
       }
     }
 
-    // backlog 위치 강제: 항상 가장 왼쪽이어야 한다
+    // backlog 위치 강제: 항상 같은 레인 내 가장 왼쪽이어야 한다
     if (values.type === List.Types.BACKLOG && !_.isUndefined(values.position)) {
       const otherTopLevel = lists.filter((l) => l.parentListId === null);
       const minPosition = otherTopLevel.reduce(
@@ -55,7 +58,7 @@ module.exports = {
       }
     }
 
-    // backlog가 아닌 리스트는 backlog 왼쪽으로 이동할 수 없다
+    // backlog가 아닌 리스트는 같은 레인의 backlog 왼쪽으로 이동할 수 없다
     if (
       values.type !== List.Types.BACKLOG &&
       !_.isUndefined(values.position) &&
@@ -92,9 +95,11 @@ module.exports = {
       }
     }
 
+    // 같은 레인의 최상위 리스트들로만 reposition 계산
+    const samePositionScope = lists.filter((l) => l.parentListId === null);
     const { position, repositions } = sails.helpers.utils.insertToPositionables(
       values.position,
-      lists,
+      samePositionScope,
     );
 
     if (repositions.length > 0) {

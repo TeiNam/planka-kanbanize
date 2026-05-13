@@ -60,13 +60,18 @@ const LeadTimeHistogram = React.memo(({ data }) => {
 
   return (
     <div className={styles.wrapper}>
-      <ResponsiveContainer width="100%" height={320}>
-        <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData} margin={{ top: 16, right: 30, left: 8, bottom: 28 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="label"
             tick={{ fontSize: 12 }}
-            label={{ value: 'Lead Time (일)', position: 'insideBottom', offset: -5, fontSize: 12 }}
+            label={{
+              value: 'Lead Time (일)',
+              position: 'insideBottom',
+              offset: -18,
+              fontSize: 12,
+            }}
           />
           <YAxis
             tick={{ fontSize: 12 }}

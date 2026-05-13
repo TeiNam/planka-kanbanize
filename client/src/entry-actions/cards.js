@@ -74,12 +74,13 @@ const handleCardUpdate = (card) => ({
   },
 });
 
-const moveCard = (id, listId, index = 0) => ({
+const moveCard = (id, listId, index, swimLaneId) => ({
   type: EntryActionTypes.CARD_MOVE,
   payload: {
     id,
     listId,
-    index,
+    index: index === undefined ? 0 : index,
+    swimLaneId,
   },
 });
 

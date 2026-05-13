@@ -109,6 +109,9 @@ module.exports = {
       maxLength: 128,
       required: true,
     },
+    swimLaneId: {
+      ...idInput,
+    },
   },
 
   exits: {
@@ -149,7 +152,7 @@ module.exports = {
       throw Errors.NOT_ENOUGH_RIGHTS;
     }
 
-    const values = _.pick(inputs, ['type', 'position', 'name']);
+    const values = _.pick(inputs, ['type', 'position', 'name', 'swimLaneId']);
 
     const list = await sails.helpers.lists.createOne
       .with({

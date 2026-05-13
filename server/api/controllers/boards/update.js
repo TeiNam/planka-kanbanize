@@ -153,6 +153,17 @@ module.exports = {
       type: 'string',
       isIn: Object.values(Board.WipLimitModes),
     },
+    isSwimLanesEnabled: {
+      type: 'boolean',
+    },
+    isExpediteLaneEnabled: {
+      type: 'boolean',
+    },
+    expediteWipLimit: {
+      type: 'number',
+      min: 1,
+      max: 2,
+    },
     isSubscribed: {
       type: 'boolean',
     },
@@ -200,6 +211,9 @@ module.exports = {
         'expandTaskListsByDefault',
         'systemWipLimit',
         'wipLimitMode',
+        'isSwimLanesEnabled',
+        'isExpediteLaneEnabled',
+        'expediteWipLimit',
       );
     }
     if (isBoardMember) {
@@ -221,6 +235,9 @@ module.exports = {
       'expandTaskListsByDefault',
       'systemWipLimit',
       'wipLimitMode',
+      'isSwimLanesEnabled',
+      'isExpediteLaneEnabled',
+      'expediteWipLimit',
       'isSubscribed',
     ]);
 

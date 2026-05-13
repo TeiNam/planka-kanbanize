@@ -4,6 +4,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import classNames from 'classnames';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
@@ -18,6 +19,8 @@ import { BoardMembershipRoles, ListTypes } from '../../../../constants/Enums';
 import AddList from './AddList';
 import List from '../../../lists/List';
 import BoardSummaryBar from '../BoardSummaryBar';
+import SwimLaneRail from '../../../swim-lanes/SwimLaneRail';
+import AddSwimLaneButton from '../../../swim-lanes/AddSwimLaneButton';
 import PlusMathIcon from '../../../../assets/images/plus-math-icon.svg?react';
 
 import styles from './KanbanContent.module.scss';
@@ -26,6 +29,45 @@ import globalStyles from '../../../../styles.module.scss';
 const KanbanContent = React.memo(() => {
   const listIds = useSelector(selectors.selectKanbanListIdsForCurrentBoard);
   const selectListById = useMemo(() => selectors.makeSelectListById(), []);
+  const selectKanbanListIdsForBoardAndLane = useMemo(
+    () => selectors.makeSelectKanbanListIdsForBoardAndLane(),
+    [],
+  );
+
+  const board = useSelector(selectors.selectCurrentBoard);
+  const isSwimLanesEnabled = !!board && board.isSwimLanesEnabled;
+  const isExpediteLaneEnabled = !!board && board.isExpediteLaneEnabled;
+  const expediteWipLimit = (board && board.expediteWipLimit) || 1;
+
+  const swimLanes = useSelector((state) => {
+    if (!board) return [];
+    return selectors.selectSwimLanesByBoardId(state, board.id) || [];
+  });
+
+  // 표준 레인 (스윔레인 모드일 때만 사용)
+  const standardLanes = useMemo(
+    () =>
+      swimLanes
+        .filter((l) => l.type !== 'expedite')
+        .slice()
+        .sort((a, b) => a.position - b.position),
+    [swimLanes],
+  );
+
+  // Expedite 레인 (긴급 토글일 때만 사용)
+  const expediteLane = useMemo(
+    () => swimLanes.find((l) => l.type === 'expedite') || null,
+    [swimLanes],
+  );
+
+  const showExpediteRow = isExpediteLaneEnabled && !!expediteLane;
+  const showStandardLanes = isSwimLanesEnabled && standardLanes.length > 0;
+
+  // Expedite 레인 전용 컬럼 ID 목록
+  const expediteListIds = useSelector((state) => {
+    if (!showExpediteRow || !board) return [];
+    return selectKanbanListIdsForBoardAndLane(state, board.id, expediteLane.id);
+  });
   // backlog 컬럼의 인덱스만 단일 숫자로 추출 (배열을 만들지 않아 referential equality 안전)
   const backlogIndex = useSelector((state) => {
     if (!listIds) return -1;
@@ -50,6 +92,15 @@ const KanbanContent = React.memo(() => {
   const dispatch = useDispatch();
   const [t] = useTranslation();
   const [isAddListOpened, setIsAddListOpened] = useState(false);
+  const [isAddExpediteListOpened, setIsAddExpediteListOpened] = useState(false);
+
+  const handleAddExpediteListClick = useCallback(() => {
+    setIsAddExpediteListOpened(true);
+  }, []);
+
+  const handleAddExpediteListClose = useCallback(() => {
+    setIsAddExpediteListOpened(false);
+  }, []);
 
   const wrapperRef = useRef(null);
   const prevPositionRef = useRef(null);
@@ -89,12 +140,15 @@ const KanbanContent = React.memo(() => {
 
           break;
         }
-        case DroppableTypes.CARD:
-          dispatch(
-            entryActions.moveCard(id, parseDndId(destination.droppableId), destination.index),
-          );
+        case DroppableTypes.CARD: {
+          // droppableId 형식: "list:{listId}" 또는 "list:{listId}:lane:{laneId}"
+          const parts = destination.droppableId.split(':');
+          const destListId = parts[1];
+          const destSwimLaneId = parts[2] === 'lane' ? parts[3] || null : undefined;
+          dispatch(entryActions.moveCard(id, destListId, destination.index, destSwimLaneId));
 
           break;
+        }
         default:
       }
     },
@@ -170,37 +224,60 @@ const KanbanContent = React.memo(() => {
     }
   }, [listIds, isAddListOpened]);
 
-  return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-    <div ref={wrapperRef} className={styles.wrapper} onMouseDown={handleMouseDown}>
-      <BoardSummaryBar />
-      <div>
-        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <Droppable droppableId="board" type={DroppableTypes.LIST} direction="horizontal">
+  // Expedite 레인 행: 헤더 + 가로 컬럼들 (열 헤더 자체 표시)
+  const renderExpediteRow = () => {
+    if (!expediteLane) return null;
+    return (
+      <div className={classNames(styles.swimLaneRow, styles.swimLaneRowExpedite)}>
+        <div className={styles.swimLaneLabel}>
+          <div className={styles.swimLaneLabelInner}>
+            <div className={styles.swimLaneLabelName}>
+              {t('common.expediteLane', { defaultValue: 'Expedite' })}
+            </div>
+            <div className={styles.swimLaneLabelWip}>
+              {t('common.wipLimit', { defaultValue: 'WIP' })} {expediteWipLimit}
+            </div>
+          </div>
+        </div>
+        <div className={styles.swimLaneListsWrapper}>
+          <Droppable
+            droppableId={`board:lane:${expediteLane.id}`}
+            type={DroppableTypes.LIST}
+            direction="horizontal"
+            isDropDisabled
+          >
             {({ innerRef, droppableProps, placeholder }) => (
               <div
                 {...droppableProps} // eslint-disable-line react/jsx-props-no-spreading
-                data-drag-scroller
                 ref={innerRef}
                 className={styles.lists}
               >
-                {listIds.map((listId, index) => (
-                  <List key={listId} id={listId} index={index} />
+                {expediteListIds.map((listId, index) => (
+                  <List
+                    key={listId}
+                    id={listId}
+                    index={index}
+                    swimLaneId={expediteLane.id}
+                    isFirstLane
+                    isExpediteLane
+                  />
                 ))}
                 {placeholder}
                 {canAddList && (
                   <div data-drag-scroller className={styles.list}>
-                    {isAddListOpened ? (
-                      <AddList onClose={handleAddListClose} />
+                    {isAddExpediteListOpened ? (
+                      <AddList onClose={handleAddExpediteListClose} swimLaneId={expediteLane.id} />
                     ) : (
                       <button
                         type="button"
                         className={styles.addListButton}
-                        onClick={handleAddListClick}
+                        onClick={handleAddExpediteListClick}
                       >
                         <PlusMathIcon className={styles.addListButtonIcon} />
                         <span className={styles.addListButtonText}>
-                          {listIds.length > 0 ? t('action.addAnotherList') : t('action.addList')}
+                          {expediteListIds.length > 0
+                            ? t('action.addAnotherList')
+                            : t('action.addList')}
                         </span>
                       </button>
                     )}
@@ -209,6 +286,138 @@ const KanbanContent = React.memo(() => {
               </div>
             )}
           </Droppable>
+        </div>
+      </div>
+    );
+  };
+
+  // 표준 스윔레인 행들
+  const renderStandardLaneRows = () => {
+    const firstStandardId = standardLanes[0] && standardLanes[0].id;
+    return standardLanes.map((lane, laneIdx) => {
+      const isFirstLane = laneIdx === 0;
+      const isDefaultLane = lane.id === firstStandardId;
+      return (
+        <div key={lane.id} className={styles.swimLaneRow}>
+          <div className={styles.swimLaneLabel}>
+            <div className={styles.swimLaneLabelInner}>
+              <div className={styles.swimLaneLabelName}>{lane.name}</div>
+              {lane.wipLimit !== null && lane.wipLimit !== undefined && (
+                <div className={styles.swimLaneLabelWip}>
+                  {t('common.wipLimit', { defaultValue: 'WIP' })} {lane.wipLimit}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className={styles.swimLaneListsWrapper}>
+            <Droppable
+              droppableId={`board:lane:${lane.id}`}
+              type={DroppableTypes.LIST}
+              direction="horizontal"
+              isDropDisabled
+            >
+              {({ innerRef, droppableProps, placeholder }) => (
+                <div
+                  {...droppableProps} // eslint-disable-line react/jsx-props-no-spreading
+                  ref={innerRef}
+                  className={styles.lists}
+                >
+                  {listIds.map((listId, index) => (
+                    <List
+                      key={listId}
+                      id={listId}
+                      index={index}
+                      swimLaneId={lane.id}
+                      isFirstLane={isFirstLane}
+                      isDefaultLane={isDefaultLane}
+                    />
+                  ))}
+                  {placeholder}
+                  {isFirstLane && canAddList && (
+                    <div data-drag-scroller className={styles.list}>
+                      {isAddListOpened ? (
+                        <AddList onClose={handleAddListClose} />
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.addListButton}
+                          onClick={handleAddListClick}
+                        >
+                          <PlusMathIcon className={styles.addListButtonIcon} />
+                          <span className={styles.addListButtonText}>
+                            {listIds.length > 0 ? t('action.addAnotherList') : t('action.addList')}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </Droppable>
+          </div>
+        </div>
+      );
+    });
+  };
+
+  // 일반 보드 (스윔레인 OFF). Expedite 토글 ON일 때는 Expedite 카드를 제외한다.
+  const renderMainBoard = () => (
+    <Droppable droppableId="board" type={DroppableTypes.LIST} direction="horizontal">
+      {({ innerRef, droppableProps, placeholder }) => (
+        <div
+          {...droppableProps} // eslint-disable-line react/jsx-props-no-spreading
+          data-drag-scroller
+          ref={innerRef}
+          className={styles.lists}
+        >
+          {listIds.map((listId, index) => (
+            <List
+              key={listId}
+              id={listId}
+              index={index}
+              excludeSwimLaneId={showExpediteRow ? expediteLane.id : undefined}
+            />
+          ))}
+          {placeholder}
+          {canAddList && (
+            <div data-drag-scroller className={styles.list}>
+              {isAddListOpened ? (
+                <AddList onClose={handleAddListClose} />
+              ) : (
+                <button type="button" className={styles.addListButton} onClick={handleAddListClick}>
+                  <PlusMathIcon className={styles.addListButtonIcon} />
+                  <span className={styles.addListButtonText}>
+                    {listIds.length > 0 ? t('action.addAnotherList') : t('action.addList')}
+                  </span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </Droppable>
+  );
+
+  // 표준 스윔레인 OFF 상태에서 추가 버튼 표시 X. 켜져 있고 레인이 없으면 안내용 레일.
+  const showSwimLaneRail = isSwimLanesEnabled && standardLanes.length === 0;
+
+  return (
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+    <div ref={wrapperRef} className={styles.wrapper} onMouseDown={handleMouseDown}>
+      <BoardSummaryBar />
+      {showSwimLaneRail && <SwimLaneRail />}
+      <div>
+        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <div className={styles.swimLanes}>
+            {showExpediteRow && renderExpediteRow()}
+            {showStandardLanes ? renderStandardLaneRows() : null}
+            {!showStandardLanes && renderMainBoard()}
+            {isSwimLanesEnabled && (
+              <div className={styles.swimLaneAddRow}>
+                <AddSwimLaneButton />
+              </div>
+            )}
+          </div>
         </DragDropContext>
       </div>
     </div>

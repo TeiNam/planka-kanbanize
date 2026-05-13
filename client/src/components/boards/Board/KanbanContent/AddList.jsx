@@ -25,7 +25,7 @@ const DEFAULT_DATA = {
   type: ListTypes.TASK,
 };
 
-const AddList = React.memo(({ onClose }) => {
+const AddList = React.memo(({ onClose, swimLaneId }) => {
   const dispatch = useDispatch();
   const [t] = useTranslation();
   const [data, handleFieldChange, setData] = useForm(DEFAULT_DATA);
@@ -47,10 +47,14 @@ const AddList = React.memo(({ onClose }) => {
       return;
     }
 
+    if (swimLaneId) {
+      cleanData.swimLaneId = swimLaneId;
+    }
+
     dispatch(entryActions.createListInCurrentBoard(cleanData));
     setData(DEFAULT_DATA);
     focusNameField();
-  }, [dispatch, data, setData, focusNameField, nameFieldRef]);
+  }, [dispatch, data, setData, focusNameField, nameFieldRef, swimLaneId]);
 
   const handleTypeSelect = useCallback(
     (type) => {
@@ -146,6 +150,11 @@ const AddList = React.memo(({ onClose }) => {
 
 AddList.propTypes = {
   onClose: PropTypes.func.isRequired,
+  swimLaneId: PropTypes.string,
+};
+
+AddList.defaultProps = {
+  swimLaneId: undefined,
 };
 
 export default AddList;

@@ -103,6 +103,53 @@ export const makeSelectFilteredCardIdsByListId = () =>
 
 export const selectFilteredCardIdsByListId = makeSelectFilteredCardIdsByListId();
 
+// 스윔레인 단위로 필터링된 카드 ID 목록.
+// includeUnassigned가 true면 swimLaneId가 null/undefined인 카드도 포함 (기본 레인용).
+export const makeSelectFilteredCardIdsByListAndSwimLane = () =>
+  createSelector(
+    orm,
+    (_, listId) => listId,
+    (_, __, swimLaneId) => swimLaneId,
+    (_, __, ___, includeUnassigned) => !!includeUnassigned,
+    ({ List }, listId, swimLaneId, includeUnassigned) => {
+      const listModel = List.withId(listId);
+
+      if (!listModel) {
+        return [];
+      }
+
+      return listModel
+        .getFilteredCardsModelArray()
+        .filter((cardModel) => {
+          const cardLaneId = cardModel.swimLaneId || null;
+          if (cardLaneId === swimLaneId) return true;
+          if (includeUnassigned && cardLaneId === null) return true;
+          return false;
+        })
+        .map((cardModel) => cardModel.id);
+    },
+  );
+
+// 특정 swimLaneId를 제외한 카드 ID 목록 (Expedite ON + 스윔레인 OFF인 메인 보드용)
+export const makeSelectFilteredCardIdsByListExcludingSwimLane = () =>
+  createSelector(
+    orm,
+    (_, listId) => listId,
+    (_, __, excludeSwimLaneId) => excludeSwimLaneId,
+    ({ List }, listId, excludeSwimLaneId) => {
+      const listModel = List.withId(listId);
+
+      if (!listModel) {
+        return [];
+      }
+
+      return listModel
+        .getFilteredCardsModelArray()
+        .filter((cardModel) => (cardModel.swimLaneId || null) !== excludeSwimLaneId)
+        .map((cardModel) => cardModel.id);
+    },
+  );
+
 export const selectIsListWithIdAvailableForCurrentUser = createSelector(
   orm,
   (_, id) => id,
@@ -267,6 +314,8 @@ export default {
   selectCardIdsByListId,
   makeSelectFilteredCardIdsByListId,
   selectFilteredCardIdsByListId,
+  makeSelectFilteredCardIdsByListAndSwimLane,
+  makeSelectFilteredCardIdsByListExcludingSwimLane,
   selectIsListWithIdAvailableForCurrentUser,
   selectCurrentListId,
   selectCurrentList,

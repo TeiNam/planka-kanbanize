@@ -53,6 +53,15 @@ export default class extends BaseModel {
     }),
     systemWipLimit: attr(),
     wipLimitMode: attr(),
+    isSwimLanesEnabled: attr({
+      getDefault: () => false,
+    }),
+    isExpediteLaneEnabled: attr({
+      getDefault: () => false,
+    }),
+    expediteWipLimit: attr({
+      getDefault: () => 1,
+    }),
     projectId: fk({
       to: 'Project',
       as: 'project',

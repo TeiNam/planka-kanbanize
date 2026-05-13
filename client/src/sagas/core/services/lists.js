@@ -25,7 +25,13 @@ export function* createList(boardId, data) {
 
   const nextData = {
     ...data,
-    position: yield select(selectors.selectNextListPosition, boardId),
+    position: yield select(
+      selectors.selectNextListPosition,
+      boardId,
+      undefined,
+      undefined,
+      data && data.swimLaneId,
+    ),
   };
 
   yield put(

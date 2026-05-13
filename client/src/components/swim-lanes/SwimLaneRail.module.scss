@@ -1,0 +1,54 @@
+/*!
+ * Copyright (c) 2024 PLANKA Software GmbH
+ * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
+ */
+
+:global(#app) {
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 0;
+  }
+
+  .lane {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.18);
+    border-left: 4px solid rgba(255, 255, 255, 0.4);
+    border-radius: 3px;
+    color: rgba(255, 255, 255, 0.92);
+    display: flex;
+    font-size: 13px;
+    justify-content: space-between;
+    min-height: 32px;
+    padding: 4px 12px;
+  }
+
+  .laneExpedite {
+    background: rgba(220, 53, 69, 0.55);
+    border-left-color: #ff5b66;
+    color: #fff;
+  }
+
+  .laneInfo {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+  }
+
+  .expediteIcon {
+    color: #ffd166;
+    margin: 0;
+  }
+
+  .laneName {
+    font-weight: 600;
+  }
+
+  .wip {
+    background: rgba(0, 0, 0, 0.32);
+    border-radius: 10px;
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+}

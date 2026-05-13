@@ -109,6 +109,79 @@ module.exports = {
         return board;
       }
 
+      // 스윔레인/긴급 레인 토글 부수효과 처리
+      const wasSwimLanesEnabled = inputs.record.isSwimLanesEnabled;
+      const wasExpediteLaneEnabled = inputs.record.isExpediteLaneEnabled;
+      const prevExpediteWipLimit = inputs.record.expediteWipLimit;
+
+      const existingSwimLanes = await SwimLane.qm.getByBoardId(board.id);
+
+      // 스윔레인 토글이 처음 켜질 때, 표준 레인이 하나도 없으면 기본 레인 생성
+      if (
+        !wasSwimLanesEnabled &&
+        board.isSwimLanesEnabled &&
+        !existingSwimLanes.some((sl) => sl.type === SwimLane.Types.STANDARD)
+      ) {
+        const defaultStandardLane = await SwimLane.qm.createOne({
+          boardId: board.id,
+          name: 'Standard',
+          type: SwimLane.Types.STANDARD,
+          position: 65535,
+        });
+
+        sails.sockets.broadcast(
+          `board:${board.id}`,
+          'swimLaneCreate',
+          { item: defaultStandardLane },
+          inputs.request,
+        );
+      }
+
+      // 긴급 레인 토글이 켜질 때, expedite 레인이 없으면 생성
+      if (
+        !wasExpediteLaneEnabled &&
+        board.isExpediteLaneEnabled &&
+        !existingSwimLanes.some((sl) => sl.type === SwimLane.Types.EXPEDITE)
+      ) {
+        const expediteLane = await SwimLane.qm.createOne({
+          boardId: board.id,
+          name: 'Expedite',
+          type: SwimLane.Types.EXPEDITE,
+          position: 0,
+          wipLimit: board.expediteWipLimit,
+        });
+
+        sails.sockets.broadcast(
+          `board:${board.id}`,
+          'swimLaneCreate',
+          { item: expediteLane },
+          inputs.request,
+        );
+      }
+
+      // expediteWipLimit이 변경되면, 기존 expedite 레인의 wipLimit 동기화
+      if (
+        !_.isUndefined(values.expediteWipLimit) &&
+        prevExpediteWipLimit !== board.expediteWipLimit
+      ) {
+        const expediteLane = existingSwimLanes.find((sl) => sl.type === SwimLane.Types.EXPEDITE);
+        if (expediteLane) {
+          const updated = await SwimLane.qm.updateOne(
+            { id: expediteLane.id, boardId: board.id },
+            { wipLimit: board.expediteWipLimit },
+          );
+
+          if (updated) {
+            sails.sockets.broadcast(
+              `board:${board.id}`,
+              'swimLaneUpdate',
+              { item: updated },
+              inputs.request,
+            );
+          }
+        }
+      }
+
       scoper.board = board;
       const boardRelatedUserIds = await scoper.getBoardRelatedUserIds();
 

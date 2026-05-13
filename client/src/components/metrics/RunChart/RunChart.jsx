@@ -87,27 +87,44 @@ const RunChart = React.memo(({ leadTimeData, throughputData }) => {
   return (
     <div className={styles.wrapper}>
       <h4 className={styles.title}>Run Chart</h4>
-      <ResponsiveContainer width="100%" height={300}>
-        <ComposedChart data={composedData} margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={composedData} margin={{ top: 10, right: 40, left: 10, bottom: 48 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis
             dataKey="index"
-            label={{ value: '완료 순서', position: 'insideBottom', offset: -5 }}
+            label={{
+              value: '완료 순서',
+              position: 'insideBottom',
+              offset: -38,
+              fontSize: 12,
+            }}
             tick={{ fontSize: 12 }}
           />
           <YAxis
             yAxisId="left"
-            label={{ value: 'Lead Time (일)', angle: -90, position: 'insideLeft' }}
+            label={{
+              value: 'Lead Time (일)',
+              angle: -90,
+              position: 'insideLeft',
+              offset: 10,
+              fontSize: 12,
+            }}
             tick={{ fontSize: 12 }}
           />
           <YAxis
             yAxisId="right"
             orientation="right"
-            label={{ value: 'Throughput (건/주)', angle: 90, position: 'insideRight' }}
+            label={{
+              value: 'Throughput (건/주)',
+              angle: 90,
+              position: 'insideRight',
+              offset: 10,
+              fontSize: 12,
+            }}
             tick={{ fontSize: 12 }}
           />
           <Tooltip content={<RunChartTooltip />} />
-          <Legend />
+          <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: 8, bottom: 0 }} />
           <Scatter
             yAxisId="left"
             name="Lead Time"

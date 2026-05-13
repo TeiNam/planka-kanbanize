@@ -116,7 +116,7 @@ const WipAgingChart = React.memo(({ wipAgingData, lists }) => {
   return (
     <div className={styles.wrapper}>
       <h4 className={styles.title}>WIP Aging Chart</h4>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height="100%">
         <ScatterChart margin={{ top: 10, right: 30, left: 10, bottom: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis

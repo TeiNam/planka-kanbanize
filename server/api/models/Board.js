@@ -170,6 +170,21 @@ module.exports = {
       defaultsTo: WipLimitModes.WARN,
       columnName: 'wip_limit_mode',
     },
+    isSwimLanesEnabled: {
+      type: 'boolean',
+      defaultsTo: false,
+      columnName: 'is_swim_lanes_enabled',
+    },
+    isExpediteLaneEnabled: {
+      type: 'boolean',
+      defaultsTo: false,
+      columnName: 'is_expedite_lane_enabled',
+    },
+    expediteWipLimit: {
+      type: 'number',
+      defaultsTo: 1,
+      columnName: 'expedite_wip_limit',
+    },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗

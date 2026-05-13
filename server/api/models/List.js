@@ -202,6 +202,10 @@ module.exports = {
       model: 'List',
       columnName: 'parent_list_id',
     },
+    swimLaneId: {
+      model: 'SwimLane',
+      columnName: 'swim_lane_id',
+    },
     cards: {
       collection: 'Card',
       via: 'listId',

@@ -68,14 +68,20 @@ export const selectNextListPosition = createSelector(
   (_, boardId) => boardId,
   (_, __, index) => index,
   (_, __, ___, excludedId) => excludedId,
-  ({ Board }, boardId, index, excludedId) => {
+  (_, __, ___, ____, swimLaneId) => swimLaneId,
+  ({ Board }, boardId, index, excludedId, swimLaneId) => {
     const boardModel = Board.withId(boardId);
 
     if (!boardModel) {
       return boardModel;
     }
 
-    return nextPosition(boardModel.getKanbanListsQuerySet().toRefArray(), index, excludedId);
+    const lists = boardModel
+      .getKanbanListsQuerySet()
+      .toRefArray()
+      .filter((l) => (l.swimLaneId || null) === (swimLaneId || null));
+
+    return nextPosition(lists, index, excludedId);
   },
 );
 

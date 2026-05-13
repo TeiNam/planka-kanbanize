@@ -130,6 +130,33 @@ export function* createCard(listId, data, index, autoOpen) {
     ...data,
   };
 
+  // 컬럼이 특정 스윔레인에 속한 경우 카드도 그 레인에 귀속시킨다
+  if (list.swimLaneId && (nextData.swimLaneId === undefined || nextData.swimLaneId === null)) {
+    nextData.swimLaneId = list.swimLaneId;
+  }
+
+  // Expedite 레인 cap 검증: 행 전체 카드 합이 cap에 도달하면 생성 차단
+  if (nextData.swimLaneId) {
+    const board = yield select(selectors.selectBoardById, list.boardId);
+    const expediteLane = board
+      ? yield select(selectors.selectExpediteLaneByBoardId, board.id)
+      : null;
+    if (expediteLane && expediteLane.id === nextData.swimLaneId) {
+      const cap = Number((board && board.expediteWipLimit) || 1);
+      const currentCount = yield select(selectors.selectExpediteLaneCardCount, board.id);
+      if ((currentCount || 0) + 1 > cap) {
+        yield call(
+          toast,
+          { type: ToastTypes.EXPEDITE_LANE_LIMIT_EXCEEDED },
+          {
+            id: 'expedite-lane-limit',
+          },
+        );
+        return;
+      }
+    }
+  }
+
   if (isListFinite(list)) {
     nextData.position = yield select(selectors.selectNextCardPosition, listId, index);
   }
@@ -352,13 +379,18 @@ export function* handleCardUpdate(card) {
   }
 }
 
-export function* moveCard(id, listId, index) {
+export function* moveCard(id, listId, index, swimLaneId) {
   const data = {};
   if (listId) {
     data.listId = listId;
   } else {
     // eslint-disable-next-line no-param-reassign
     ({ listId } = yield select(selectors.selectCardById, id));
+  }
+
+  // swimLaneId가 정의되어 있으면 (스윔레인 모드) 항상 명시 — null이면 미할당으로 이동
+  if (swimLaneId !== undefined) {
+    data.swimLaneId = swimLaneId || null;
   }
 
   const list = yield select(selectors.selectListById, listId);
@@ -383,13 +415,59 @@ export function* moveCard(id, listId, index) {
     console.warn('blocker pre-check failed:', e);
   }
 
+  // Expedite 레인 cap 검증 (행 전체 합 기준)
+  let expediteBlocked = false;
+  try {
+    if (list && data.swimLaneId) {
+      const board = yield select(selectors.selectBoardById, list.boardId);
+      const expediteLane = board
+        ? yield select(selectors.selectExpediteLaneByBoardId, board.id)
+        : null;
+      if (expediteLane && expediteLane.id === data.swimLaneId) {
+        const card = yield select(selectors.selectCardById, id);
+        const wasInExpedite = card && (card.swimLaneId || null) === expediteLane.id;
+        if (!wasInExpedite) {
+          const cap = Number((board && board.expediteWipLimit) || 1);
+          const currentCount = yield select(selectors.selectExpediteLaneCardCount, board.id);
+          if ((currentCount || 0) + 1 > cap) {
+            yield call(
+              toast,
+              { type: ToastTypes.EXPEDITE_LANE_LIMIT_EXCEEDED },
+              {
+                id: 'expedite-lane-limit',
+              },
+            );
+            expediteBlocked = true;
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('Expedite cap pre-check failed:', e);
+  }
+  if (expediteBlocked) {
+    return;
+  }
+
   // WIP 한도 사전 검증 (block 모드면 거부, warn 모드면 토스트 경고만)
   // selector가 어떤 이유로 throw해도 카드 이동 자체는 진행되도록 try로 감싼다.
   let blocked = false;
   try {
     const card = yield select(selectors.selectCardById, id);
-    if (card && list && card.listId !== list.id && list.type === ListTypes.TASK) {
-      const board = yield select(selectors.selectBoardById, list.boardId);
+    // Expedite 레인 목적지는 컬럼/시스템 WIP 검증을 건너뛴다 (자체 cap만 적용)
+    const board = yield select(selectors.selectBoardById, list && list.boardId);
+    const expediteLaneForSkip = board
+      ? yield select(selectors.selectExpediteLaneByBoardId, board.id)
+      : null;
+    const destIsExpedite = expediteLaneForSkip && data.swimLaneId === expediteLaneForSkip.id;
+    if (
+      !destIsExpedite &&
+      card &&
+      list &&
+      card.listId !== list.id &&
+      list.type === ListTypes.TASK
+    ) {
       const sourceList = yield select(selectors.selectListById, card.listId);
       // 대상의 효과적 부모 list (sub-column이면 그 부모, 아니면 자기 자신)
       const targetParent = list.parentListId
@@ -401,16 +479,13 @@ export function* moveCard(id, listId, index) {
           ? yield select(selectors.selectListById, sourceList.parentListId)
           : sourceList;
       const targetIsLimited =
-        targetParent &&
-        targetParent.wipLimit !== null &&
-        targetParent.wipLimit !== undefined;
+        targetParent && targetParent.wipLimit !== null && targetParent.wipLimit !== undefined;
       const sourceIsLimited =
         sourceParent &&
         sourceParent.type === ListTypes.TASK &&
         sourceParent.wipLimit !== null &&
         sourceParent.wipLimit !== undefined;
-      const sameParent =
-        targetParent && sourceParent && targetParent.id === sourceParent.id;
+      const sameParent = targetParent && sourceParent && targetParent.id === sourceParent.id;
 
       let columnExceeded = false;
       if (targetIsLimited && !sameParent) {

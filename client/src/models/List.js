@@ -74,6 +74,7 @@ export default class extends BaseModel {
       as: 'parentList',
       relatedName: 'subColumns',
     }),
+    swimLaneId: attr(),
     isBuffer: attr({
       getDefault: () => false,
     }),

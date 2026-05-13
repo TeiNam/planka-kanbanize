@@ -31,17 +31,20 @@ const BoardSummaryBar = React.memo(() => {
   const tagline = firstLine(project && project.description);
   const currentWip = taskCardIds ? taskCardIds.length : 0;
   const hasLimit = board.systemWipLimit !== null && board.systemWipLimit !== undefined;
-  const isExceeded = hasLimit && currentWip > board.systemWipLimit;
+  // 긴급 레인이 켜진 경우 Total WIP 분모에 expediteWipLimit를 더한다
+  const expediteAllowance = board.isExpediteLaneEnabled ? board.expediteWipLimit || 1 : 0;
+  const totalLimit = hasLimit ? Number(board.systemWipLimit) + expediteAllowance : null;
+  const isExceeded = hasLimit && currentWip > totalLimit;
 
   return (
     <div className={styles.wrapper}>
       <div
         className={classNames(styles.totalWip, isExceeded && styles.totalWipExceeded)}
-        title={hasLimit ? `Total WIP: ${currentWip}/${board.systemWipLimit}` : undefined}
+        title={hasLimit ? `Total WIP: ${currentWip}/${totalLimit}` : undefined}
       >
         <span className={styles.totalWipLabel}>Total WIP:</span>
         <span className={styles.totalWipValue}>
-          {hasLimit ? `${currentWip}/${board.systemWipLimit}` : currentWip}
+          {hasLimit ? `${currentWip}/${totalLimit}` : currentWip}
         </span>
       </div>
       <div className={styles.tagline} title={tagline}>

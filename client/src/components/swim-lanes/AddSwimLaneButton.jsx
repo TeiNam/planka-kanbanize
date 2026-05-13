@@ -15,12 +15,6 @@ import { useForm } from '../../hooks';
 
 import styles from './AddSwimLaneButton.module.scss';
 
-// 스윔레인 타입 옵션
-const TYPE_OPTIONS = [
-  { key: 'standard', value: 'standard', text: 'Standard' },
-  { key: 'expedite', value: 'expedite', text: 'Expedite' },
-];
-
 // 스윔레인 카테고리 옵션
 const CATEGORY_OPTIONS = [
   { key: 'none', value: '', text: 'None' },
@@ -32,7 +26,6 @@ const CATEGORY_OPTIONS = [
 
 const DEFAULT_DATA = {
   name: '',
-  type: 'standard',
   category: '',
 };
 
@@ -65,7 +58,7 @@ const AddSwimLaneButton = React.memo(() => {
 
     const swimLaneData = {
       name: trimmedName,
-      type: data.type,
+      type: 'standard',
     };
 
     if (data.category) {
@@ -99,13 +92,6 @@ const AddSwimLaneButton = React.memo(() => {
           value={data.name}
           maxLength={50}
           autoFocus
-          onChange={handleFieldChange}
-        />
-        <Form.Select
-          name="type"
-          label={t('common.type', { defaultValue: 'Type' })}
-          options={TYPE_OPTIONS}
-          value={data.type}
           onChange={handleFieldChange}
         />
         <Form.Select

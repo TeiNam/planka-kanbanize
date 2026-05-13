@@ -288,9 +288,30 @@ export const selectKanbanListIdsForCurrentBoard = createSelector(
     return boardModel
       .getKanbanListsQuerySet()
       .toRefArray()
+      .filter((list) => !list.swimLaneId)
       .map((list) => list.id);
   },
 );
+
+export const makeSelectKanbanListIdsForBoardAndLane = () =>
+  createSelector(
+    orm,
+    (_, boardId) => boardId,
+    (_, __, swimLaneId) => swimLaneId,
+    ({ Board }, boardId, swimLaneId) => {
+      if (!boardId) return [];
+      const boardModel = Board.withId(boardId);
+      if (!boardModel) return [];
+      const target = swimLaneId || null;
+      return boardModel
+        .getKanbanListsQuerySet()
+        .toRefArray()
+        .filter((list) => (list.swimLaneId || null) === target)
+        .map((list) => list.id);
+    },
+  );
+
+export const selectKanbanListIdsForBoardAndLane = makeSelectKanbanListIdsForBoardAndLane();
 
 // TODO: rename?
 export const selectAvailableListsForCurrentBoard = createSelector(
@@ -371,14 +392,19 @@ export const selectTaskCardIdsForCurrentBoard = createSelector(
       return boardModel;
     }
 
+    const expediteLane = boardModel.swimLanes.filter((sl) => sl.type === 'expedite').first();
+    const expediteEnabled = boardModel.isExpediteLaneEnabled && !!expediteLane;
+    const expediteLaneId = expediteLane ? expediteLane.id : null;
+
     const limitedTaskListModels = boardModel
       .getKanbanListsQuerySet()
       .toModelArray()
       .filter(
         (listModel) =>
           listModel.type === ListTypes.TASK &&
-          listModel.wipLimit !== null &&
-          listModel.wipLimit !== undefined,
+          // Expedite 컬럼은 자체 cap을 따로 더한다 — list.wipLimit가 없어도 포함
+          ((expediteEnabled && (listModel.swimLaneId || null) === expediteLaneId) ||
+            (listModel.wipLimit !== null && listModel.wipLimit !== undefined)),
       );
 
     const cardIds = [];
@@ -530,6 +556,8 @@ export default {
   selectArchiveListIdForCurrentBoard,
   selectTrashListIdForCurrentBoard,
   selectKanbanListIdsForCurrentBoard,
+  makeSelectKanbanListIdsForBoardAndLane,
+  selectKanbanListIdsForBoardAndLane,
   selectAvailableListsForCurrentBoard,
   selectCardsExceptCurrentForCurrentBoard,
   selectFilteredCardIdsForCurrentBoard,

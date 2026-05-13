@@ -359,6 +359,7 @@ export default {
       wipLimitSumExceedsSystemLimit:
         '컬럼 WIP 한도의 합이 총 WIP 한도를 초과합니다.',
       cardHasActiveBlockers: '활성 블로커가 있는 카드는 다른 목록으로 이동할 수 없습니다.',
+      expediteLaneLimitExceeded: '긴급 레인 WIP 한도에 도달했습니다.',
       unlimited: '무제한',
       wipLimitHint: '1~100. 비우거나 0으로 두면 무제한입니다.',
       unsavedChanges: '저장되지 않은 변경사항',

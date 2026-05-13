@@ -7,3 +7,4 @@ export { default as SwimLane } from './SwimLane';
 export { default as SwimLaneHeader } from './SwimLaneHeader';
 export { default as SwimLaneSettings } from './SwimLaneSettings';
 export { default as AddSwimLaneButton } from './AddSwimLaneButton';
+export { default as SwimLaneRail } from './SwimLaneRail';

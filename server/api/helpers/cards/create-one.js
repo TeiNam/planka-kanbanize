@@ -83,6 +83,8 @@ module.exports = {
       ...values,
       boardId: values.board.id,
       listId: values.list.id,
+      // 컬럼이 특정 스윔레인에 속한 경우 카드도 그 레인에 귀속
+      swimLaneId: values.swimLaneId || values.list.swimLaneId || null,
       creatorUserId: values.creatorUser.id,
       listChangedAt: new Date().toISOString(),
     });

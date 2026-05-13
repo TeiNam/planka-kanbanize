@@ -39,8 +39,8 @@ export default function* cardsWatchers() {
     takeEvery(EntryActionTypes.CARD_UPDATE_HANDLE, ({ payload: { card } }) =>
       services.handleCardUpdate(card),
     ),
-    takeEvery(EntryActionTypes.CARD_MOVE, ({ payload: { id, listId, index } }) =>
-      services.moveCard(id, listId, index),
+    takeEvery(EntryActionTypes.CARD_MOVE, ({ payload: { id, listId, index, swimLaneId } }) =>
+      services.moveCard(id, listId, index, swimLaneId),
     ),
     takeEvery(EntryActionTypes.CURRENT_CARD_MOVE, ({ payload: { listId, index, autoClose } }) =>
       services.moveCurrentCard(listId, index, autoClose),
