@@ -15,6 +15,7 @@ import entryActions from '../../../entry-actions';
 import { useSteps } from '../../../hooks';
 import { ListTypes } from '../../../constants/Enums';
 import EditColorStep from './EditColorStep';
+import EditWipLimitStep from './EditWipLimitStep';
 import EditSubColumnsStep from './EditSubColumnsStep';
 import SortStep from './SortStep';
 import MoveStep from './MoveStep';
@@ -77,6 +78,10 @@ const ActionsStep = React.memo(({ listId, onNameEdit, onCardAdd, onClose }) => {
     openStep(StepTypes.EDIT_COLOR);
   }, [openStep]);
 
+  const handleEditWipLimitClick = useCallback(() => {
+    openStep(StepTypes.EDIT_WIP_LIMIT);
+  }, [openStep]);
+
   const handleEditSubColumnsClick = useCallback(() => {
     openStep(StepTypes.EDIT_SUB_COLUMNS);
   }, [openStep]);
@@ -113,6 +118,8 @@ const ActionsStep = React.memo(({ listId, onNameEdit, onCardAdd, onClose }) => {
         );
       case StepTypes.EDIT_COLOR:
         return <EditColorStep listId={listId} onBack={handleBack} onClose={onClose} />;
+      case StepTypes.EDIT_WIP_LIMIT:
+        return <EditWipLimitStep listId={listId} onBack={handleBack} onClose={onClose} />;
       case StepTypes.EDIT_SUB_COLUMNS:
         return <EditSubColumnsStep listId={listId} onBack={handleBack} onClose={onClose} />;
       case StepTypes.SORT:
@@ -162,6 +169,15 @@ const ActionsStep = React.memo(({ listId, onNameEdit, onCardAdd, onClose }) => {
               context: 'title',
             })}
           </Menu.Item>
+          {list.type === ListTypes.TASK && !list.parentListId && (
+            <Menu.Item className={styles.menuItem} onClick={handleEditWipLimitClick}>
+              <Icon name="tachometer alternate" className={styles.menuItemIcon} />
+              {t('action.editWipLimit', {
+                context: 'title',
+                defaultValue: 'Edit WIP limit',
+              })}
+            </Menu.Item>
+          )}
           {list.type === ListTypes.TASK && !list.parentListId && (
             <Menu.Item className={styles.menuItem} onClick={handleEditSubColumnsClick}>
               <Icon name="columns" className={styles.menuItemIcon} />
