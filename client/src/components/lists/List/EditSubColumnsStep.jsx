@@ -16,10 +16,7 @@ import entryActions from '../../../entry-actions';
 import styles from './EditSubColumnsStep.module.scss';
 
 const EditSubColumnsStep = React.memo(({ listId, onBack, onClose }) => {
-  const selectSubColumnCount = useMemo(
-    () => selectors.makeSelectSubColumnCountByListId(),
-    [],
-  );
+  const selectSubColumnCount = useMemo(() => selectors.makeSelectSubColumnCountByListId(), []);
   const childCount = useSelector((state) => selectSubColumnCount(state, listId));
 
   const dispatch = useDispatch();
@@ -77,11 +74,7 @@ const EditSubColumnsStep = React.memo(({ listId, onBack, onClose }) => {
             </div>
           </Form.Field>
           <div className={styles.actions}>
-            <Button
-              positive
-              type="submit"
-              content={t('action.save', { defaultValue: 'Save' })}
-            />
+            <Button positive type="submit" content={t('action.save', { defaultValue: 'Save' })} />
           </div>
         </Form>
       </Popup.Content>

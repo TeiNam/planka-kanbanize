@@ -73,15 +73,12 @@ const SystemWipLimit = React.memo(() => {
     commit();
   }, [commit]);
 
-  const handleKeyDown = useCallback(
-    (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        event.target.blur();
-      }
-    },
-    [],
-  );
+  const handleKeyDown = useCallback((event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      event.target.blur();
+    }
+  }, []);
 
   return (
     <Segment basic className={styles.wrapper}>

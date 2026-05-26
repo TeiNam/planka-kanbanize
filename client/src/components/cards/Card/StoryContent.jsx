@@ -152,9 +152,7 @@ const StoryContent = React.memo(({ cardId }) => {
             ))}
           </span>
         )}
-        {card.id && (
-          <div className={styles.trackingId}>{`#${String(card.id).slice(-6)}`}</div>
-        )}
+        {card.id && <div className={styles.trackingId}>{`#${String(card.id).slice(-6)}`}</div>}
         <div className={styles.titleRow}>
           {userIds && userIds.length > 0 && (
             <span className={styles.members}>
@@ -175,35 +173,33 @@ const StoryContent = React.memo(({ cardId }) => {
         {(createdShort || dueShort || startShort || completedShort) && (
           <div className={styles.dates}>
             {/* task 컬럼 카드는 생성일 대신 시작일 표시. 시작일이 없으면 생성일 fallback. */}
-            {effectiveListType === 'task' ? (
-              startShort ? (
-                <div className={styles.dateLine}>
-                  <Icon name="play" />
-                  <span className={styles.dateLabel}>시작일:</span>
-                  <span className={styles.dateValue}>{startShort}</span>
-                  {card.startDate && (
-                    <span className={styles.dateAge}>
-                      <Icon name="history" className={styles.dateAgeIcon} />
-                      <TimeAgo date={new Date(card.startDate)} />
-                    </span>
-                  )}
-                </div>
-              ) : (
-                createdShort && (
-                  <div className={styles.dateLine}>
-                    <Icon name="calendar outline" />
-                    <span className={styles.dateLabel}>생성일:</span>
-                    <span className={styles.dateValue}>{createdShort}</span>
-                    {card.createdAt && (
-                      <span className={styles.dateAge}>
-                        <Icon name="history" className={styles.dateAgeIcon} />
-                        <TimeAgo date={new Date(card.createdAt)} />
-                      </span>
-                    )}
-                  </div>
-                )
-              )
-            ) : (
+            {effectiveListType === 'task' && startShort && (
+              <div className={styles.dateLine}>
+                <Icon name="play" />
+                <span className={styles.dateLabel}>시작일:</span>
+                <span className={styles.dateValue}>{startShort}</span>
+                {card.startDate && (
+                  <span className={styles.dateAge}>
+                    <Icon name="history" className={styles.dateAgeIcon} />
+                    <TimeAgo date={new Date(card.startDate)} />
+                  </span>
+                )}
+              </div>
+            )}
+            {effectiveListType === 'task' && !startShort && createdShort && (
+              <div className={styles.dateLine}>
+                <Icon name="calendar outline" />
+                <span className={styles.dateLabel}>생성일:</span>
+                <span className={styles.dateValue}>{createdShort}</span>
+                {card.createdAt && (
+                  <span className={styles.dateAge}>
+                    <Icon name="history" className={styles.dateAgeIcon} />
+                    <TimeAgo date={new Date(card.createdAt)} />
+                  </span>
+                )}
+              </div>
+            )}
+            {effectiveListType !== 'task' && (
               <>
                 {createdShort && (
                   <div className={styles.dateLine}>
@@ -234,10 +230,7 @@ const StoryContent = React.memo(({ cardId }) => {
                 <span className={styles.dateValue}>{dueShort}</span>
                 {dueDays !== null && (
                   <span
-                    className={classNames(
-                      styles.dateAge,
-                      dueDays < 0 && styles.dateAgeOverdue,
-                    )}
+                    className={classNames(styles.dateAge, dueDays < 0 && styles.dateAgeOverdue)}
                   >
                     ({formatDueCountdown(dueDays)})
                   </span>
@@ -246,7 +239,9 @@ const StoryContent = React.memo(({ cardId }) => {
             )}
             {completedShort && (
               <div className={styles.dateLine}>
-                <Icon name={effectiveListType === 'discard' ? 'trash alternate outline' : 'check'} />
+                <Icon
+                  name={effectiveListType === 'discard' ? 'trash alternate outline' : 'check'}
+                />
                 <span className={styles.dateLabel}>
                   {effectiveListType === 'discard' ? '폐기일:' : '완료일:'}
                 </span>

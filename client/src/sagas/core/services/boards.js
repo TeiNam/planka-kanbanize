@@ -20,7 +20,9 @@ import ToastTypes from '../../../constants/ToastTypes';
 const isWipLimitSumExceededError = (error) => {
   if (!error) return false;
   const msg = `${error.message || ''}`;
-  return msg.indexOf('column WIP limits sum') !== -1 || msg.indexOf('Sum of column WIP limits') !== -1;
+  return (
+    msg.indexOf('column WIP limits sum') !== -1 || msg.indexOf('Sum of column WIP limits') !== -1
+  );
 };
 
 export function* createBoard(projectId, { import: boardImport, ...data }) {

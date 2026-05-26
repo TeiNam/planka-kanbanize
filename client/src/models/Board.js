@@ -300,9 +300,7 @@ export default class extends BaseModel {
   getKanbanListsQuerySet() {
     // 부모(top-level) list만 노출. 서브컬럼(parentListId !== null)은
     // 부모 List 컴포넌트가 내부에서 자체적으로 렌더한다.
-    return this.getListsQuerySet().filter(
-      (list) => isListKanban(list) && !list.parentListId,
-    );
+    return this.getListsQuerySet().filter((list) => isListKanban(list) && !list.parentListId);
   }
 
   getCustomFieldGroupsQuerySet() {

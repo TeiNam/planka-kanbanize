@@ -15,7 +15,6 @@ import { startStopwatch, stopStopwatch } from '../../../utils/stopwatch';
 import { isListArchiveOrTrash } from '../../../utils/record-helpers';
 import { BoardMembershipRoles, BoardViews } from '../../../constants/Enums';
 import TaskList from './TaskList';
-import DueDateChip from '../DueDateChip';
 import StopwatchChip from '../StopwatchChip';
 import TimeAgo from '../../common/TimeAgo';
 import UserAvatar from '../../users/UserAvatar';
@@ -200,9 +199,7 @@ const ProjectContent = React.memo(({ cardId }) => {
         </div>
       )}
       <div className={styles.wrapper}>
-        {card.id && (
-          <div className={styles.trackingId}>{`#${String(card.id).slice(-6)}`}</div>
-        )}
+        {card.id && <div className={styles.trackingId}>{`#${String(card.id).slice(-6)}`}</div>}
         <div className={styles.titleRow}>
           {creatorNode}
           <div className={classNames(styles.name, card.isClosed && styles.nameClosed)}>
@@ -240,35 +237,33 @@ const ProjectContent = React.memo(({ cardId }) => {
         {hasDateRow && (
           <div className={styles.dates}>
             {/* task 컬럼 카드는 생성일 대신 시작일 표시. 시작일이 없으면 생성일 fallback. */}
-            {isTaskList ? (
-              startShort ? (
-                <div className={styles.dateLine}>
-                  <Icon name="play" />
-                  <span className={styles.dateLabel}>시작일:</span>
-                  <span className={styles.dateValue}>{startShort}</span>
-                  {card.startDate && (
-                    <span className={styles.dateAge}>
-                      <Icon name="history" className={styles.dateAgeIcon} />
-                      <TimeAgo date={new Date(card.startDate)} />
-                    </span>
-                  )}
-                </div>
-              ) : (
-                createdShort && (
-                  <div className={styles.dateLine}>
-                    <Icon name="calendar outline" />
-                    <span className={styles.dateLabel}>생성일:</span>
-                    <span className={styles.dateValue}>{createdShort}</span>
-                    {card.createdAt && (
-                      <span className={styles.dateAge}>
-                        <Icon name="history" className={styles.dateAgeIcon} />
-                        <TimeAgo date={new Date(card.createdAt)} />
-                      </span>
-                    )}
-                  </div>
-                )
-              )
-            ) : (
+            {isTaskList && startShort && (
+              <div className={styles.dateLine}>
+                <Icon name="play" />
+                <span className={styles.dateLabel}>시작일:</span>
+                <span className={styles.dateValue}>{startShort}</span>
+                {card.startDate && (
+                  <span className={styles.dateAge}>
+                    <Icon name="history" className={styles.dateAgeIcon} />
+                    <TimeAgo date={new Date(card.startDate)} />
+                  </span>
+                )}
+              </div>
+            )}
+            {isTaskList && !startShort && createdShort && (
+              <div className={styles.dateLine}>
+                <Icon name="calendar outline" />
+                <span className={styles.dateLabel}>생성일:</span>
+                <span className={styles.dateValue}>{createdShort}</span>
+                {card.createdAt && (
+                  <span className={styles.dateAge}>
+                    <Icon name="history" className={styles.dateAgeIcon} />
+                    <TimeAgo date={new Date(card.createdAt)} />
+                  </span>
+                )}
+              </div>
+            )}
+            {!isTaskList && (
               <>
                 {createdShort && (
                   <div className={styles.dateLine}>
@@ -299,10 +294,7 @@ const ProjectContent = React.memo(({ cardId }) => {
                 <span className={styles.dateValue}>{dueShort}</span>
                 {dueDays !== null && (
                   <span
-                    className={classNames(
-                      styles.dateAge,
-                      dueDays < 0 && styles.dateAgeOverdue,
-                    )}
+                    className={classNames(styles.dateAge, dueDays < 0 && styles.dateAgeOverdue)}
                   >
                     ({formatDueCountdown(dueDays)})
                   </span>
@@ -311,7 +303,9 @@ const ProjectContent = React.memo(({ cardId }) => {
             )}
             {completedShort && (
               <div className={styles.dateLine}>
-                <Icon name={effectiveListType === 'discard' ? 'trash alternate outline' : 'check'} />
+                <Icon
+                  name={effectiveListType === 'discard' ? 'trash alternate outline' : 'check'}
+                />
                 <span className={styles.dateLabel}>
                   {effectiveListType === 'discard' ? '폐기일:' : '완료일:'}
                 </span>
@@ -330,7 +324,11 @@ const ProjectContent = React.memo(({ cardId }) => {
           <span className={styles.attachments}>
             {notificationsTotal > 0 && (
               <span
-                className={classNames(styles.attachment, styles.attachmentLeft, styles.notification)}
+                className={classNames(
+                  styles.attachment,
+                  styles.attachmentLeft,
+                  styles.notification,
+                )}
               >
                 {notificationsTotal}
               </span>

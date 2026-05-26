@@ -52,8 +52,7 @@ const EditWipLimitStep = React.memo(({ listId, onBack, onClose }) => {
         setError(true);
         return;
       }
-      const current =
-        list.wipLimit === null || list.wipLimit === undefined ? null : list.wipLimit;
+      const current = list.wipLimit === null || list.wipLimit === undefined ? null : list.wipLimit;
       if (parsed !== current) {
         dispatch(entryActions.updateList(listId, { wipLimit: parsed }));
       }
@@ -100,11 +99,7 @@ const EditWipLimitStep = React.memo(({ listId, onBack, onClose }) => {
               content={t('action.clear', { defaultValue: 'Clear' })}
               onClick={handleClear}
             />
-            <Button
-              positive
-              type="submit"
-              content={t('action.save', { defaultValue: 'Save' })}
-            />
+            <Button positive type="submit" content={t('action.save', { defaultValue: 'Save' })} />
           </div>
         </Form>
       </Popup.Content>

@@ -329,10 +329,7 @@ const ProjectContent = React.memo(() => {
             userIds.length > 0 ||
             labelIds.length > 0) && (
             <div
-              className={classNames(
-                styles.moduleWrapper,
-                styles.moduleWrapperAttachmentsStacked,
-              )}
+              className={classNames(styles.moduleWrapper, styles.moduleWrapperAttachmentsStacked)}
             >
               {board.alwaysDisplayCardCreator && (
                 <div className={styles.attachments}>

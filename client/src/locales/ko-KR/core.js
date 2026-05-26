@@ -31,7 +31,6 @@ export default {
       blockers: '블로커',
       blockerReason: '블로커 사유...',
       resolved: '해결됨',
-      searchCards: '카드 검색...',
       addAttachment_title: '첨부 파일 추가',
       addCustomFieldGroup_title: '사용자 정의 필드 그룹 추가',
       addCustomField_title: '사용자 정의 필드 추가',
@@ -118,8 +117,7 @@ export default {
         '이 목록의 카드들은 모든 보드 멤버가 사용할 수 있습니다.',
       cardsOnThisListAreCompleteAndReadyToBeArchived:
         '이 목록의 카드들은 완료되어 보관할 준비가 되었습니다.',
-      cardsOnThisListAreNotYetCommitted:
-        '백로그: 아직 약속되지 않은 후보 작업들입니다.',
+      cardsOnThisListAreNotYetCommitted: '백로그: 아직 약속되지 않은 후보 작업들입니다.',
       cardsOnThisListAreReadyToBeWorkedOn: '이 목록의 카드들은 작업할 준비가 되었습니다.',
       cardsOnThisListHaveBeenDiscarded: '이 목록의 카드들은 폐기되었습니다.',
       clickHereOrRefreshPageToUpdate:
@@ -344,8 +342,7 @@ export default {
       editWipLimit_title: 'WIP 한도 편집',
       systemWipLimit: '총 WIP 한도',
       systemWipLimit_title: '총 WIP 한도',
-      systemWipLimitHint:
-        '태스크 컬럼들의 카드 수 합계 상한. 비우면 무제한입니다.',
+      systemWipLimitHint: '태스크 컬럼들의 카드 수 합계 상한. 비우면 무제한입니다.',
       wipLimitMode: 'WIP 한도 동작',
       wipLimitMode_title: 'WIP 한도 동작',
       wipLimitMode_warn: '경고만 (소프트 제한)',
@@ -356,8 +353,7 @@ export default {
       wipLimitWarn: '컬럼 WIP 한도를 초과합니다.',
       systemWipLimitExceeded: '총 WIP 한도 초과. 이동이 차단되었습니다.',
       systemWipLimitWarn: '총 WIP 한도를 초과합니다.',
-      wipLimitSumExceedsSystemLimit:
-        '컬럼 WIP 한도의 합이 총 WIP 한도를 초과합니다.',
+      wipLimitSumExceedsSystemLimit: '컬럼 WIP 한도의 합이 총 WIP 한도를 초과합니다.',
       cardHasActiveBlockers: '활성 블로커가 있는 카드는 다른 목록으로 이동할 수 없습니다.',
       expediteLaneLimitExceeded: '긴급 레인 WIP 한도에 도달했습니다.',
       unlimited: '무제한',

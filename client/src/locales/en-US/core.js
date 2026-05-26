@@ -118,8 +118,7 @@ export default {
         'Cards on this list are available to all board members.',
       cardsOnThisListAreCompleteAndReadyToBeArchived:
         'Cards on this list are complete and ready to be archived.',
-      cardsOnThisListAreNotYetCommitted:
-        'Backlog: cards here are candidates not yet committed to.',
+      cardsOnThisListAreNotYetCommitted: 'Backlog: cards here are candidates not yet committed to.',
       cardsOnThisListAreReadyToBeWorkedOn: 'Cards on this list are ready to be worked on.',
       cardsOnThisListHaveBeenDiscarded: 'Cards on this list have been discarded.',
       clickHereOrRefreshPageToUpdate: '<0>Click here</0> or refresh the page to update.',
@@ -343,8 +342,7 @@ export default {
       editWipLimit_title: 'Edit WIP Limit',
       systemWipLimit: 'Total WIP limit',
       systemWipLimit_title: 'Total WIP limit',
-      systemWipLimitHint:
-        'Maximum cards allowed across task columns. Leave empty for no limit.',
+      systemWipLimitHint: 'Maximum cards allowed across task columns. Leave empty for no limit.',
       wipLimitHint: '1~100. Leave empty or set to 0 for no limit.',
       wipLimitMode: 'WIP limit behavior',
       wipLimitMode_title: 'WIP limit behavior',
@@ -356,8 +354,7 @@ export default {
       wipLimitWarn: 'Column WIP limit will be exceeded.',
       systemWipLimitExceeded: 'Total WIP limit reached. Move blocked.',
       systemWipLimitWarn: 'Total WIP limit will be exceeded.',
-      wipLimitSumExceedsSystemLimit:
-        'Sum of column WIP limits would exceed Total WIP limit.',
+      wipLimitSumExceedsSystemLimit: 'Sum of column WIP limits would exceed Total WIP limit.',
       cardHasActiveBlockers: 'Card has active blockers and cannot be moved.',
       unlimited: 'Unlimited',
       unsavedChanges: 'Unsaved changes',

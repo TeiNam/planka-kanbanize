@@ -598,7 +598,11 @@ const StoryContent = React.memo(() => {
                 )}
               </div>
             </div>
-            {(canUseMembers || canUseLabels || canAddAttachment || canAddCustomFieldGroup || canEditDescription) && (
+            {(canUseMembers ||
+              canUseLabels ||
+              canAddAttachment ||
+              canAddCustomFieldGroup ||
+              canEditDescription) && (
               <div className={styles.actions}>
                 <span className={styles.actionsTitle}>{t('action.addToCard')}</span>
                 {canUseLabels && (

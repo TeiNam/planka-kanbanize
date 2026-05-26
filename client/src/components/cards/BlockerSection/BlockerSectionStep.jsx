@@ -17,9 +17,7 @@ const BlockerSectionStep = React.memo(({ cardId, canEdit }) => {
 
   return (
     <>
-      <Popup.Header>
-        {t('common.blockers', { defaultValue: 'Blockers' })}
-      </Popup.Header>
+      <Popup.Header>{t('common.blockers', { defaultValue: 'Blockers' })}</Popup.Header>
       <Popup.Content>
         <div className={styles.content}>
           <BlockerSection cardId={cardId} canEdit={canEdit} />
