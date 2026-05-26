@@ -13,7 +13,7 @@ import { Button, Form, Input, TextArea } from 'semantic-ui-react';
 import selectors from '../../../../selectors';
 import entryActions from '../../../../entry-actions';
 import { useForm, useNestedRef } from '../../../../hooks';
-import { isModifierKeyPressed } from '../../../../utils/event-helpers';
+import { isModifierKeyPressed, isComposing } from '../../../../utils/event-helpers';
 
 import styles from './EditInformation.module.scss';
 
@@ -63,7 +63,7 @@ const EditInformation = React.memo(() => {
 
   const handleDescriptionKeyDown = useCallback(
     (event) => {
-      if (isModifierKeyPressed(event) && event.key === 'Enter') {
+      if (isModifierKeyPressed(event) && event.key === 'Enter' && !isComposing(event)) {
         submit();
       }
     },

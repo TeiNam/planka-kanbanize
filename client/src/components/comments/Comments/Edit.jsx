@@ -18,7 +18,7 @@ import entryActions from '../../../entry-actions';
 import { useForm, useNestedRef } from '../../../hooks';
 import { isUsernameChar, mentionTextToMarkup } from '../../../utils/mentions';
 import { focusEnd } from '../../../utils/element-helpers';
-import { isModifierKeyPressed } from '../../../utils/event-helpers';
+import { isModifierKeyPressed, isComposing } from '../../../utils/event-helpers';
 import UserAvatar from '../../users/UserAvatar';
 
 import styles from './Edit.module.scss';
@@ -88,6 +88,9 @@ const Edit = React.memo(({ commentId, onClose }) => {
   const handleFieldKeyDown = useCallback(
     (event) => {
       if (event.key === 'Enter') {
+        if (isComposing(event)) {
+          return;
+        }
         if (isModifierKeyPressed(event)) {
           submit();
         }

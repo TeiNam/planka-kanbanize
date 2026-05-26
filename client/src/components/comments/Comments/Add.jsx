@@ -15,7 +15,7 @@ import selectors from '../../../selectors';
 import entryActions from '../../../entry-actions';
 import { useEscapeInterceptor, useForm, useNestedRef } from '../../../hooks';
 import { isUsernameChar, mentionTextToMarkup } from '../../../utils/mentions';
-import { isModifierKeyPressed } from '../../../utils/event-helpers';
+import { isModifierKeyPressed, isComposing } from '../../../utils/event-helpers';
 import UserAvatar from '../../users/UserAvatar';
 
 import styles from './Add.module.scss';
@@ -95,7 +95,7 @@ const Add = React.memo(() => {
 
   const handleFieldKeyDown = useCallback(
     (event) => {
-      if (isModifierKeyPressed(event) && event.key === 'Enter') {
+      if (isModifierKeyPressed(event) && event.key === 'Enter' && !isComposing(event)) {
         submit();
       }
     },

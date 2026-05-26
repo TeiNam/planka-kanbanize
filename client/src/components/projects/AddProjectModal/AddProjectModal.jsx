@@ -14,7 +14,7 @@ import { Input } from '../../../lib/custom-ui';
 import selectors from '../../../selectors';
 import entryActions from '../../../entry-actions';
 import { useClosableModal, useForm, useNestedRef } from '../../../hooks';
-import { isModifierKeyPressed } from '../../../utils/event-helpers';
+import { isModifierKeyPressed, isComposing } from '../../../utils/event-helpers';
 import { ProjectTypes } from '../../../constants/Enums';
 import { ProjectTypeIcons } from '../../../constants/Icons';
 import SelectTypeStep from './SelectTypeStep';
@@ -68,7 +68,7 @@ const AddProjectModal = React.memo(() => {
 
   const handleDescriptionKeyDown = useCallback(
     (event) => {
-      if (isModifierKeyPressed(event) && event.key === 'Enter') {
+      if (isModifierKeyPressed(event) && event.key === 'Enter' && !isComposing(event)) {
         submit();
       }
     },

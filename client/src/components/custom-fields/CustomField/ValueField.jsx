@@ -9,6 +9,7 @@ import { useDidUpdate, usePrevious, useToggle } from '../../../lib/hooks';
 import { Input } from '../../../lib/custom-ui';
 
 import { useEscapeInterceptor, useField, useNestedRef } from '../../../hooks';
+import { isComposing } from '../../../utils/event-helpers';
 
 import styles from './ValueField.module.scss';
 
@@ -36,6 +37,9 @@ const ValueField = React.memo(({ defaultValue, onUpdate, ...props }) => {
   const handleKeyDown = useCallback(
     (event) => {
       if (event.key === 'Enter') {
+        if (isComposing(event)) {
+          return;
+        }
         event.preventDefault();
         fieldRef.current.blur();
       }

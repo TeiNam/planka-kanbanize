@@ -15,7 +15,7 @@ import selectors from '../../../selectors';
 import entryActions from '../../../entry-actions';
 import { useForm, useNestedRef } from '../../../hooks';
 import { focusEnd } from '../../../utils/element-helpers';
-import { isModifierKeyPressed } from '../../../utils/event-helpers';
+import { isComposing, isModifierKeyPressed } from '../../../utils/event-helpers';
 
 import styles from './AddTask.module.scss';
 
@@ -88,6 +88,10 @@ const AddTask = React.memo(({ children, taskListId, isOpened, onClose }) => {
   const handleFieldKeyDown = useCallback(
     (event) => {
       if (event.key === 'Enter') {
+        // IME 조합 중인 Enter는 조합 확정용으로만 사용. submit으로 흘러가면 마지막 글자가 다음 입력에 복제되는 버그 발생.
+        if (isComposing(event)) {
+          return;
+        }
         if (!isLinkingToCard) {
           event.preventDefault();
           submit(isModifierKeyPressed(event));
