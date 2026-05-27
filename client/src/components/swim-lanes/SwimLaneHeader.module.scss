@@ -5,53 +5,72 @@
 
 :global(#app) {
   .wrapper {
-    align-items: center;
-    background: #ebecf0;
-    border-bottom: 1px solid #dfe1e6;
+    align-items: stretch;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0)
+    );
+    border-left: 3px solid rgba(255, 255, 255, 0.32);
+    border-radius: 0 4px 4px 0;
     display: flex;
+    flex-direction: column;
+    height: 100%;
     justify-content: space-between;
-    min-height: 40px;
-    padding: 6px 8px;
+    min-height: 64px;
+    padding: 8px 10px;
   }
 
   .wrapperExceeded {
-    background: #ffebe6;
-    border-bottom-color: #ff5630;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 91, 102, 0.18),
+      rgba(255, 91, 102, 0)
+    );
+    border-left-color: #ff5b66;
   }
 
   .wrapperExpedite {
-    border-left: 3px solid #ff5630;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 91, 102, 0.18),
+      rgba(255, 91, 102, 0)
+    );
+    border-left-color: #ff5b66;
   }
 
   .info {
     align-items: center;
     display: flex;
-    flex: 1;
+    flex-wrap: wrap;
+    gap: 4px;
     min-width: 0;
-    overflow: hidden;
   }
 
   .expediteIcon {
-    color: #ff5630;
-    margin-right: 4px;
+    color: #ff5b66;
+    margin-right: 2px;
   }
 
   .name {
-    color: #172b4d;
-    font-size: 14px;
-    font-weight: bold;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    line-height: 1.3;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   .categoryBadge {
-    background: #dfe1e6;
-    border-radius: 3px;
-    color: #5e6c84;
-    font-size: 11px;
-    margin-left: 8px;
-    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    padding: 1px 7px;
+    text-transform: uppercase;
     white-space: nowrap;
   }
 
@@ -59,37 +78,39 @@
     align-items: center;
     display: flex;
     flex-shrink: 0;
-    margin-left: 8px;
+    justify-content: space-between;
+    margin-top: 6px;
   }
 
   .wipIndicator {
-    background: #dfe1e6;
-    border-radius: 3px;
-    color: #5e6c84;
-    font-size: 12px;
-    font-weight: bold;
-    margin-right: 4px;
-    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
   }
 
   .wipIndicatorExceeded {
-    background: #ff5630;
+    background: #ff5b66;
     color: #fff;
   }
 
   .settingsButton {
     background: none;
     box-shadow: none;
-    color: #6b778c;
-    height: 28px;
+    color: rgba(255, 255, 255, 0.7);
+    height: 24px;
     margin: 0;
+    margin-left: auto;
     opacity: 0;
     padding: 0;
-    width: 28px;
+    transition: opacity 80ms ease-in, background 80ms ease-in;
+    width: 24px;
 
     &:hover {
-      background: rgba(9, 30, 66, 0.08);
-      color: #172b4d;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
     }
   }
 

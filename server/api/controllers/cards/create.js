@@ -157,6 +157,10 @@ module.exports = {
       type: 'json',
       custom: isStopwatch,
     },
+    swimLaneId: {
+      ...idInput,
+      allowNull: true,
+    },
   },
 
   exits: {
@@ -199,6 +203,7 @@ module.exports = {
       'dueDate',
       'isDueCompleted',
       'stopwatch',
+      'swimLaneId',
     ]);
 
     const card = await sails.helpers.cards.createOne

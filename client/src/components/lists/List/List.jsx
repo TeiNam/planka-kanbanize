@@ -201,11 +201,17 @@ const List = React.memo(
 
     const handleCardCreate = useCallback(
       (data, autoOpen) => {
+        const payload = isLaneScoped && swimLaneId ? { ...data, swimLaneId } : data;
         dispatch(
-          entryActions.createCard(id, data, INDEX_BY_ADD_CARD_POSITION[addCardPosition], autoOpen),
+          entryActions.createCard(
+            id,
+            payload,
+            INDEX_BY_ADD_CARD_POSITION[addCardPosition],
+            autoOpen,
+          ),
         );
       },
-      [id, dispatch, addCardPosition],
+      [id, dispatch, addCardPosition, isLaneScoped, swimLaneId],
     );
 
     const handlePasteCardClick = useCallback(() => {
@@ -479,7 +485,7 @@ const List = React.memo(
                   onClose={handleCloseAllClosedCards}
                 />
               )}
-              {!addCardPosition && canAddCard && (!isLaneScoped || isFirstLane) && (
+              {!addCardPosition && canAddCard && (
                 <div className={styles.addCardButtonWrapper}>
                   <button
                     type="button"

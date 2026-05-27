@@ -69,44 +69,30 @@
   .swimLaneRow {
     display: flex;
     align-items: stretch;
-    background: rgba(0, 0, 0, 0.12);
-    border-radius: 4px;
-    padding: 4px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 8px 8px 8px 0;
     width: fit-content;
     min-width: 100%;
   }
 
   .swimLaneRowExpedite {
-    background: rgba(220, 53, 69, 0.22);
-    border-left: 4px solid #ff5b66;
+    background: rgba(255, 91, 102, 0.08);
+    border-color: rgba(255, 91, 102, 0.32);
   }
 
   .swimLaneLabel {
-    flex: 0 0 140px;
-    padding: 8px 12px 8px 4px;
+    flex: 0 0 168px;
+    padding: 0 12px 0 0;
     position: sticky;
     left: 0;
     z-index: 5;
   }
 
-  .swimLaneLabelInner {
-    color: rgba(255, 255, 255, 0.92);
-  }
-
-  .swimLaneLabelName {
-    font-size: 14px;
-    font-weight: 600;
-    word-break: break-word;
-  }
-
-  .swimLaneLabelWip {
-    font-size: 11px;
-    margin-top: 4px;
-    opacity: 0.85;
-  }
-
   .swimLaneListsWrapper {
     flex: 0 0 auto;
+    padding-top: 8px;
   }
 
   .swimLaneAddRow {
