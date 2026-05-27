@@ -15,6 +15,7 @@ import entryActions from '../../../../entry-actions';
 import { useSteps } from '../../../../hooks';
 import { BoardContexts, BoardMembershipRoles } from '../../../../constants/Enums';
 import { BoardContextIcons } from '../../../../constants/Icons';
+import exportBoardToExcel from '../../../../utils/export-board-to-excel';
 import ConfirmationStep from '../../../common/ConfirmationStep';
 import CustomFieldGroupsStep from '../../../custom-field-groups/CustomFieldGroupsStep';
 
@@ -27,6 +28,7 @@ const StepTypes = {
 
 const ActionsStep = React.memo(({ onClose }) => {
   const board = useSelector(selectors.selectCurrentBoard);
+  const exportData = useSelector(selectors.selectExportDataForCurrentBoard);
 
   const { withSubscribe, withCustomFieldGroups, withTrashEmptier } = useSelector((state) => {
     const isManager = selectors.selectIsCurrentUserManagerForCurrentProject(state);
@@ -87,6 +89,17 @@ const ActionsStep = React.memo(({ onClose }) => {
     openStep(StepTypes.EMPTY_TRASH);
   }, [openStep]);
 
+  const handleExportExcelClick = useCallback(async () => {
+    if (!exportData) return;
+    await exportBoardToExcel(
+      exportData.board,
+      exportData.lists,
+      exportData.swimLanes,
+      exportData.cards,
+    );
+    onClose();
+  }, [exportData, onClose]);
+
   if (step) {
     switch (step.type) {
       case StepTypes.CUSTOM_FIELD_GROUPS:
@@ -138,6 +151,10 @@ const ActionsStep = React.memo(({ onClose }) => {
             {t('common.actions', {
               context: 'title',
             })}
+          </Menu.Item>
+          <Menu.Item className={styles.menuItem} onClick={handleExportExcelClick}>
+            <Icon name="file excel outline" className={styles.menuItemIcon} />
+            {t('action.exportToExcel', { defaultValue: '엑셀로 내보내기' })}
           </Menu.Item>
           {withTrashEmptier && (
             <>

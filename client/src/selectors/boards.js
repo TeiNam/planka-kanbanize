@@ -538,6 +538,42 @@ export const selectIsBoardWithIdExists = createSelector(
   ({ Board }, id) => Board.idExists(id),
 );
 
+// 엑셀 내보내기용 — 현재 보드의 raw 데이터(board, lists, swimLanes, cards) 한꺼번에 수집
+export const selectExportDataForCurrentBoard = createSelector(
+  orm,
+  (state) => selectPath(state).boardId,
+  ({ Board }, id) => {
+    if (!id) return null;
+    const boardModel = Board.withId(id);
+    if (!boardModel) return null;
+
+    const lists = boardModel.lists
+      .toRefArray()
+      .filter((list) => !isListArchiveOrTrash(list))
+      .map((list) => ({ ...list }));
+
+    const swimLanes = boardModel.swimLanes.toRefArray().map((lane) => ({ ...lane }));
+
+    const cards = boardModel
+      .getKanbanListsQuerySet()
+      .toModelArray()
+      .flatMap((listModel) => {
+        const direct = listModel.cards.toModelArray();
+        const sub = listModel.subColumns
+          ? listModel.subColumns.toModelArray().flatMap((child) => child.cards.toModelArray())
+          : [];
+        return [...direct, ...sub];
+      })
+      .map((cardModel) => ({
+        ...cardModel.ref,
+        members: cardModel.users.toRefArray().map((u) => u.name || u.username || u.email || u.id),
+        labels: cardModel.labels.toRefArray().map((l) => l.name || ''),
+      }));
+
+    return { board: { ...boardModel.ref }, lists, swimLanes, cards };
+  },
+);
+
 export default {
   makeSelectBoardById,
   selectBoardById,
@@ -568,4 +604,5 @@ export default {
   selectFilterUserIdsForCurrentBoard,
   selectFilterLabelIdsForCurrentBoard,
   selectIsBoardWithIdExists,
+  selectExportDataForCurrentBoard,
 };

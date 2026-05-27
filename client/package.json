@@ -106,6 +106,7 @@
     "classnames": "^2.5.1",
     "date-fns": "^4.1.0",
     "dequal": "^2.0.3",
+    "exceljs": "^4.4.0",
     "highlight.js": "^11.11.1",
     "highlightjs-4d": "^1.0.6",
     "highlightjs-alan": "^0.0.2",
