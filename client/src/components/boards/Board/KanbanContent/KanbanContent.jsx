@@ -20,6 +20,7 @@ import AddList from './AddList';
 import List from '../../../lists/List';
 import BoardSummaryBar from '../BoardSummaryBar';
 import SwimLaneRail from '../../../swim-lanes/SwimLaneRail';
+import SwimLaneHeader from '../../../swim-lanes/SwimLaneHeader';
 import AddSwimLaneButton from '../../../swim-lanes/AddSwimLaneButton';
 import PlusMathIcon from '../../../../assets/images/plus-math-icon.svg?react';
 
@@ -29,11 +30,14 @@ import globalStyles from '../../../../styles.module.scss';
 const KanbanContent = React.memo(() => {
   const listIds = useSelector(selectors.selectKanbanListIdsForCurrentBoard);
   const selectListById = useMemo(() => selectors.makeSelectListById(), []);
+  const selectKanbanListIdsForBoardAndLane = useMemo(
+    () => selectors.makeSelectKanbanListIdsForBoardAndLane(),
+    [],
+  );
 
   const board = useSelector(selectors.selectCurrentBoard);
   const isSwimLanesEnabled = !!board && board.isSwimLanesEnabled;
   const isExpediteLaneEnabled = !!board && board.isExpediteLaneEnabled;
-  const expediteWipLimit = (board && board.expediteWipLimit) || 1;
 
   const swimLanes = useSelector((state) => {
     if (!board) return [];
@@ -59,6 +63,12 @@ const KanbanContent = React.memo(() => {
   const showExpediteRow = isExpediteLaneEnabled && !!expediteLane;
   const showStandardLanes = isSwimLanesEnabled && standardLanes.length > 0;
 
+  // Expedite 레인 전용 컬럼 ID 목록 (일반 레인과 분리됨)
+  const expediteListIds = useSelector((state) => {
+    if (!showExpediteRow || !board) return [];
+    return selectKanbanListIdsForBoardAndLane(state, board.id, expediteLane.id);
+  });
+
   // backlog 컬럼의 인덱스만 단일 숫자로 추출 (배열을 만들지 않아 referential equality 안전)
   const backlogIndex = useSelector((state) => {
     if (!listIds) return -1;
@@ -83,6 +93,15 @@ const KanbanContent = React.memo(() => {
   const dispatch = useDispatch();
   const [t] = useTranslation();
   const [isAddListOpened, setIsAddListOpened] = useState(false);
+  const [isAddExpediteListOpened, setIsAddExpediteListOpened] = useState(false);
+
+  const handleAddExpediteListClick = useCallback(() => {
+    setIsAddExpediteListOpened(true);
+  }, []);
+
+  const handleAddExpediteListClose = useCallback(() => {
+    setIsAddExpediteListOpened(false);
+  }, []);
 
   const wrapperRef = useRef(null);
   const prevPositionRef = useRef(null);
@@ -206,20 +225,13 @@ const KanbanContent = React.memo(() => {
     }
   }, [listIds, isAddListOpened]);
 
-  // Expedite 레인 행: 보드 전체 컬럼을 공유하되 expedite 카드만 표시
+  // Expedite 레인 행: 자체 컬럼을 갖고 expedite 카드만 표시 (일반 레인과 분리)
   const renderExpediteRow = () => {
     if (!expediteLane) return null;
     return (
       <div className={classNames(styles.swimLaneRow, styles.swimLaneRowExpedite)}>
         <div className={styles.swimLaneLabel}>
-          <div className={styles.swimLaneLabelInner}>
-            <div className={styles.swimLaneLabelName}>
-              {t('common.expediteLane', { defaultValue: 'Expedite' })}
-            </div>
-            <div className={styles.swimLaneLabelWip}>
-              {t('common.wipLimit', { defaultValue: 'WIP' })} {expediteWipLimit}
-            </div>
-          </div>
+          <SwimLaneHeader swimLaneId={expediteLane.id} />
         </div>
         <div className={styles.swimLaneListsWrapper}>
           <Droppable
@@ -234,7 +246,7 @@ const KanbanContent = React.memo(() => {
                 ref={innerRef}
                 className={styles.lists}
               >
-                {listIds.map((listId, index) => (
+                {expediteListIds.map((listId, index) => (
                   <List
                     key={listId}
                     id={listId}
@@ -245,6 +257,26 @@ const KanbanContent = React.memo(() => {
                   />
                 ))}
                 {placeholder}
+                {canAddList && (
+                  <div data-drag-scroller className={styles.list}>
+                    {isAddExpediteListOpened ? (
+                      <AddList onClose={handleAddExpediteListClose} swimLaneId={expediteLane.id} />
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.addListButton}
+                        onClick={handleAddExpediteListClick}
+                      >
+                        <PlusMathIcon className={styles.addListButtonIcon} />
+                        <span className={styles.addListButtonText}>
+                          {expediteListIds.length > 0
+                            ? t('action.addAnotherList')
+                            : t('action.addList')}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </Droppable>
@@ -257,23 +289,12 @@ const KanbanContent = React.memo(() => {
   const renderStandardLaneRows = () => {
     const firstStandardId = standardLanes[0] && standardLanes[0].id;
     return standardLanes.map((lane, laneIdx) => {
-      // Expedite 행이 같은 컬럼들을 공유하며 위에 그려지면 거기서 헤더가 그려지므로,
-      // standard 첫 번째 행은 isFirstLane=false 로 두어 헤더가 중복되지 않게 한다.
-      const isFirstLane = laneIdx === 0 && !showExpediteRow;
+      const isFirstLane = laneIdx === 0;
       const isDefaultLane = lane.id === firstStandardId;
-      // 컬럼 추가 버튼은 가장 첫 standard 레인 한 번만 노출 (expedite는 자체 컬럼이 없음)
-      const showAddListButton = laneIdx === 0;
       return (
         <div key={lane.id} className={styles.swimLaneRow}>
           <div className={styles.swimLaneLabel}>
-            <div className={styles.swimLaneLabelInner}>
-              <div className={styles.swimLaneLabelName}>{lane.name}</div>
-              {lane.wipLimit !== null && lane.wipLimit !== undefined && (
-                <div className={styles.swimLaneLabelWip}>
-                  {t('common.wipLimit', { defaultValue: 'WIP' })} {lane.wipLimit}
-                </div>
-              )}
-            </div>
+            <SwimLaneHeader swimLaneId={lane.id} />
           </div>
           <div className={styles.swimLaneListsWrapper}>
             <Droppable
@@ -299,7 +320,7 @@ const KanbanContent = React.memo(() => {
                     />
                   ))}
                   {placeholder}
-                  {showAddListButton && canAddList && (
+                  {isFirstLane && canAddList && (
                     <div data-drag-scroller className={styles.list}>
                       {isAddListOpened ? (
                         <AddList onClose={handleAddListClose} />
@@ -326,7 +347,7 @@ const KanbanContent = React.memo(() => {
     });
   };
 
-  // 일반 보드 (스윔레인 OFF). Expedite 토글 ON일 때는 Expedite 카드를 제외한다.
+  // 일반 보드 (스윔레인 OFF). Expedite 컬럼은 selectKanbanListIdsForCurrentBoard 가 swimLaneId 로 자동 분리한다.
   const renderMainBoard = () => (
     <Droppable droppableId="board" type={DroppableTypes.LIST} direction="horizontal">
       {({ innerRef, droppableProps, placeholder }) => (
@@ -337,12 +358,7 @@ const KanbanContent = React.memo(() => {
           className={styles.lists}
         >
           {listIds.map((listId, index) => (
-            <List
-              key={listId}
-              id={listId}
-              index={index}
-              excludeSwimLaneId={showExpediteRow ? expediteLane.id : undefined}
-            />
+            <List key={listId} id={listId} index={index} />
           ))}
           {placeholder}
           {canAddList && (

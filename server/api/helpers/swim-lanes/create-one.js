@@ -13,10 +13,6 @@ module.exports = {
       type: 'ref',
       required: true,
     },
-    board: {
-      type: 'ref',
-      required: true,
-    },
     actorUser: {
       type: 'ref',
       required: true,
@@ -28,6 +24,7 @@ module.exports = {
 
   async fn(inputs) {
     const { values } = inputs;
+    const { board } = values;
 
     // Expedite 타입인 경우 WIP 제한 기본값 1, position 최상단 고정
     if (values.type === SwimLane.Types.EXPEDITE) {
@@ -37,7 +34,7 @@ module.exports = {
       values.position = 0;
     }
 
-    const swimLanes = await SwimLane.qm.getByBoardId(inputs.board.id);
+    const swimLanes = await SwimLane.qm.getByBoardId(board.id);
 
     const { position, repositions } = sails.helpers.utils.insertToPositionables(
       values.position,
@@ -60,7 +57,7 @@ module.exports = {
           },
         );
 
-        sails.sockets.broadcast(`board:${inputs.board.id}`, 'swimLaneUpdate', {
+        sails.sockets.broadcast(`board:${board.id}`, 'swimLaneUpdate', {
           item: {
             id: reposition.record.id,
             position: reposition.position,
@@ -70,8 +67,8 @@ module.exports = {
     }
 
     const swimLane = await SwimLane.qm.createOne({
-      ...values,
-      boardId: inputs.board.id,
+      ..._.omit(values, ['board']),
+      boardId: board.id,
     });
 
     sails.sockets.broadcast(
