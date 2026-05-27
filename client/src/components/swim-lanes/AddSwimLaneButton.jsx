@@ -29,10 +29,18 @@ const DEFAULT_DATA = {
   category: '',
 };
 
+const POSITION_GAP = 65535;
+
 const AddSwimLaneButton = React.memo(() => {
   const canEdit = useSelector((state) => {
     const boardMembership = selectors.selectCurrentUserMembershipForCurrentBoard(state);
     return !!boardMembership && boardMembership.role === BoardMembershipRoles.EDITOR;
+  });
+
+  const board = useSelector(selectors.selectCurrentBoard);
+  const swimLanes = useSelector((state) => {
+    if (!board) return [];
+    return selectors.selectSwimLanesByBoardId(state, board.id) || [];
   });
 
   const dispatch = useDispatch();
@@ -56,9 +64,16 @@ const AddSwimLaneButton = React.memo(() => {
       return;
     }
 
+    const standardLanes = swimLanes.filter((l) => l.type !== 'expedite');
+    const lastPosition = standardLanes.reduce(
+      (max, l) => (typeof l.position === 'number' && l.position > max ? l.position : max),
+      0,
+    );
+
     const swimLaneData = {
       name: trimmedName,
       type: 'standard',
+      position: lastPosition + POSITION_GAP,
     };
 
     if (data.category) {
@@ -67,7 +82,7 @@ const AddSwimLaneButton = React.memo(() => {
 
     dispatch(entryActions.createSwimLaneInCurrentBoard(swimLaneData));
     handleClose();
-  }, [data, dispatch, handleClose]);
+  }, [data, dispatch, handleClose, swimLanes]);
 
   if (!canEdit) {
     return null;

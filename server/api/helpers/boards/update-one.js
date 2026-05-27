@@ -124,7 +124,7 @@ module.exports = {
       ) {
         const defaultStandardLane = await SwimLane.qm.createOne({
           boardId: board.id,
-          name: 'Standard',
+          name: '기본',
           type: SwimLane.Types.STANDARD,
           position: 65535,
         });
@@ -145,7 +145,7 @@ module.exports = {
       ) {
         const expediteLane = await SwimLane.qm.createOne({
           boardId: board.id,
-          name: 'Expedite',
+          name: '긴급',
           type: SwimLane.Types.EXPEDITE,
           position: 0,
           wipLimit: board.expediteWipLimit,
