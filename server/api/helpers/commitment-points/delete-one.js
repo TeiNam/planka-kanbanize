@@ -36,8 +36,10 @@ module.exports = {
     // 보드당 최소 2개 유지 검증: 2개 이하인 경우 삭제하면 1개가 남게 되어 차단.
     // 0개로 초기화된 상태(아직 미사용)는 허용한다.
     const existingPoints = await CommitmentPoint.qm.getByBoardId(inputs.board.id);
-    if (existingPoints.length >= MIN_COMMITMENT_POINTS_PER_BOARD &&
-        existingPoints.length - 1 < MIN_COMMITMENT_POINTS_PER_BOARD) {
+    if (
+      existingPoints.length >= MIN_COMMITMENT_POINTS_PER_BOARD &&
+      existingPoints.length - 1 < MIN_COMMITMENT_POINTS_PER_BOARD
+    ) {
       throw 'minCommitmentPointsRequired';
     }
 

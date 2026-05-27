@@ -84,7 +84,7 @@ module.exports = {
           if (card.completedAt && new Date(card.completedAt).getTime() < endOfDayMs) return;
 
           const cardMoves = movementsByCard[card.id] || [];
-          let listId = card.listId;
+          let { listId } = card;
           for (let i = cardMoves.length - 1; i >= 0; i -= 1) {
             if (new Date(cardMoves[i].movedAt).getTime() <= endOfDayMs) {
               listId = cardMoves[i].toListId || listId;

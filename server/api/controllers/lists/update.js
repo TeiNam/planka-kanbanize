@@ -249,10 +249,7 @@ module.exports = {
       })
       .intercept('backlogAlreadyExists', () => Errors.BACKLOG_ALREADY_EXISTS)
       .intercept('backlogMustBeLeftmost', () => Errors.BACKLOG_MUST_BE_LEFTMOST)
-      .intercept(
-        'wipLimitSumExceedsSystemLimit',
-        () => Errors.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT,
-      );
+      .intercept('wipLimitSumExceedsSystemLimit', () => Errors.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT);
 
     if (!list) {
       throw Errors.LIST_NOT_FOUND;

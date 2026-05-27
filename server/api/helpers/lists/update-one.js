@@ -198,9 +198,7 @@ module.exports = {
       });
       const existingBacklog = siblings.find(
         (l) =>
-          l.id !== inputs.record.id &&
-          l.parentListId === null &&
-          l.type === List.Types.BACKLOG,
+          l.id !== inputs.record.id && l.parentListId === null && l.type === List.Types.BACKLOG,
       );
       if (existingBacklog) {
         throw 'backlogAlreadyExists';
@@ -212,9 +210,7 @@ module.exports = {
       const siblings = await List.qm.getByBoardId(board.id, {
         sort: ['position', 'id'],
       });
-      const others = siblings.filter(
-        (l) => l.id !== inputs.record.id && l.parentListId === null,
-      );
+      const others = siblings.filter((l) => l.id !== inputs.record.id && l.parentListId === null);
       const minPosition = others.reduce(
         (min, l) => (l.position !== null && (min === null || l.position < min) ? l.position : min),
         null,
@@ -240,7 +236,8 @@ module.exports = {
         sort: ['position', 'id'],
       });
       const backlog = siblings.find(
-        (l) => l.id !== inputs.record.id && l.parentListId === null && l.type === List.Types.BACKLOG,
+        (l) =>
+          l.id !== inputs.record.id && l.parentListId === null && l.type === List.Types.BACKLOG,
       );
       if (backlog && backlog.position !== null && values.position <= backlog.position) {
         throw 'backlogMustBeLeftmost';

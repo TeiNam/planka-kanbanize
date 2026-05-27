@@ -64,9 +64,7 @@ module.exports = {
       !_.isUndefined(values.position) &&
       values.position !== null
     ) {
-      const backlog = lists.find(
-        (l) => l.parentListId === null && l.type === List.Types.BACKLOG,
-      );
+      const backlog = lists.find((l) => l.parentListId === null && l.type === List.Types.BACKLOG);
       if (backlog && backlog.position !== null && values.position <= backlog.position) {
         throw 'backlogMustBeLeftmost';
       }

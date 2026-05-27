@@ -249,10 +249,7 @@ module.exports = {
         actorUser: currentUser,
         request: this.req,
       })
-      .intercept(
-        'wipLimitSumExceedsSystemLimit',
-        () => Errors.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT,
-      );
+      .intercept('wipLimitSumExceedsSystemLimit', () => Errors.WIP_LIMIT_SUM_EXCEEDS_SYSTEM_LIMIT);
 
     if (!board) {
       throw Errors.BOARD_NOT_FOUND;

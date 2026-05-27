@@ -207,8 +207,6 @@ describe('블로커 및 하위 티켓 API 통합 테스트', () => {
       });
     });
 
-
-
     describe('복수 블로커 독립 상태 관리', () => {
       it('하나의 블로커 상태 변경이 다른 블로커에 영향을 주지 않아야 함', async () => {
         const blocker1 = await Blocker.qm.createOne({

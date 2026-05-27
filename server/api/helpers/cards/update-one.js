@@ -131,17 +131,14 @@ module.exports = {
       }
 
       const targetIsLimited =
-        targetParent &&
-        targetParent.wipLimit !== null &&
-        targetParent.wipLimit !== undefined;
+        targetParent && targetParent.wipLimit !== null && targetParent.wipLimit !== undefined;
       const sourceIsLimited =
         isSameBoard &&
         sourceParent &&
         sourceParent.type === List.Types.TASK &&
         sourceParent.wipLimit !== null &&
         sourceParent.wipLimit !== undefined;
-      const sameParent =
-        targetParent && sourceParent && targetParent.id === sourceParent.id;
+      const sameParent = targetParent && sourceParent && targetParent.id === sourceParent.id;
 
       // 1) 대상 컬럼 자체 WIP 검증 (부모 + 자식 합산)
       if (targetIsLimited && !sameParent) {
@@ -160,11 +157,7 @@ module.exports = {
       }
 
       // 2) systemWipLimit 검증
-      if (
-        targetIsLimited &&
-        board.systemWipLimit !== null &&
-        board.systemWipLimit !== undefined
-      ) {
+      if (targetIsLimited && board.systemWipLimit !== null && board.systemWipLimit !== undefined) {
         const allLists = await List.qm.getByBoardId(board.id);
         const limitedParentIds = allLists
           .filter(
@@ -379,7 +372,8 @@ module.exports = {
         // (분리해서 후속 update를 하면 클라이언트의 updateCard.success가 stale한
         // 응답으로 카드를 덮어써 보드 즉시 반영이 깨진다.)
         const isTerminal = (l) =>
-          l && (l.type === List.Types.CLOSED ||
+          l &&
+          (l.type === List.Types.CLOSED ||
             l.type === List.Types.DISCARD ||
             l.subColumnType === 'done');
         const fromTerminal = isTerminal(inputs.list);
