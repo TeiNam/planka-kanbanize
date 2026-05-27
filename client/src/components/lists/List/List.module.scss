@@ -218,11 +218,17 @@
     border-left: 3px solid #b0998a;
   }
 
+  // 헤더가 숨겨진 컬럼(2번째 이후 스윔레인의 같은 컬럼)에서 카드가 상단에 붙지 않도록 여백 추가
+  .outerWrapperHeaderless {
+    padding-top: 8px;
+  }
+
   // Closed 컬럼 collapsed 모드 — 카드 부피 최소화 (제목만 표시)
   .outerWrapperCollapsed {
     :global(.card) {
       margin-bottom: 2px;
     }
+
     // 카드 내부 컨텐츠는 모두 숨기고 제목만 노출 (생성자 포함 비표시)
     [class*='trackingId'],
     [class*='creator'],
@@ -240,15 +246,18 @@
     [class*='classOfServiceStripe'] {
       display: none !important;
     }
+
     [class*='titleRow'] {
       margin: 0 !important;
       padding: 0 !important;
       min-height: 0 !important;
     }
+
     [class*='wrapper'] {
       padding: 4px 8px !important;
       min-height: 0 !important;
     }
+
     [class*='name'] {
       -webkit-line-clamp: 1 !important;
       line-clamp: 1 !important;

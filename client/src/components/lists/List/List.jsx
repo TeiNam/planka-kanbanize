@@ -386,6 +386,7 @@ const List = React.memo(
                 list.type === ListTypes.CLOSED && styles.outerWrapperClosed,
                 list.type === ListTypes.DISCARD && styles.outerWrapperDiscard,
                 isClosedList && isCollapsed && styles.outerWrapperCollapsed,
+                !showHeader && styles.outerWrapperHeaderless,
               )}
               onTransitionEnd={handleWrapperTransitionEnd}
             >
