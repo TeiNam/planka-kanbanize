@@ -15,6 +15,7 @@ import selectors from '../../../selectors';
 import entryActions from '../../../entry-actions';
 import { useField, useNestedRef } from '../../../hooks';
 import { focusEnd } from '../../../utils/element-helpers';
+import { isComposing } from '../../../utils/event-helpers';
 
 import styles from './EditName.module.scss';
 
@@ -57,6 +58,9 @@ const EditName = React.memo(({ cardId, onClose }) => {
     (event) => {
       switch (event.key) {
         case 'Enter':
+          if (isComposing(event)) {
+            return;
+          }
           event.preventDefault();
           submit();
 

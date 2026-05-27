@@ -13,6 +13,7 @@ import selectors from '../../../selectors';
 import entryActions from '../../../entry-actions';
 import Paths from '../../../constants/Paths';
 import { push } from '../../../lib/redux-router';
+import { isComposing } from '../../../utils/event-helpers';
 
 import styles from './BlockerSection.module.scss';
 
@@ -227,6 +228,9 @@ const BlockerSection = React.memo(({ cardId, canEdit }) => {
   const handleKeyDown = useCallback(
     (e) => {
       if (e.key === 'Enter') {
+        if (isComposing(e)) {
+          return;
+        }
         handleSubmit();
       } else if (e.key === 'Escape') {
         handleCancelClick();

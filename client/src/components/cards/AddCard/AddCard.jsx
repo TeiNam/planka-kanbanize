@@ -15,7 +15,7 @@ import { usePopup } from '../../../lib/popup';
 
 import selectors from '../../../selectors';
 import { useClosable, useForm, useNestedRef } from '../../../hooks';
-import { isModifierKeyPressed } from '../../../utils/event-helpers';
+import { isComposing, isModifierKeyPressed } from '../../../utils/event-helpers';
 import { CardTypeIcons } from '../../../constants/Icons';
 import SelectCardTypeStep from '../SelectCardTypeStep';
 
@@ -90,6 +90,9 @@ const AddCard = React.memo(({ isOpened, className, onCreate, onClose }) => {
     (event) => {
       switch (event.key) {
         case 'Enter':
+          if (isComposing(event)) {
+            return;
+          }
           event.preventDefault();
           submit(isModifierKeyPressed(event));
 
