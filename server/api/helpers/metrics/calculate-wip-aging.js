@@ -82,10 +82,25 @@ module.exports = {
       return { lists: [] };
     }
 
+    // 진행 중 task 컬럼의 서브컬럼(sub-column)도 포함한다.
+    // 보드가 task 컬럼을 서브컬럼으로 분할해 쓰는 경우 카드는 서브컬럼(parentListId 있음)에
+    // 위치하므로, 최상위 컬럼만 조회하면 누락된다. 서브컬럼 카드는 부모 컬럼 기준으로 집계한다.
+    const subColumns = await List.find({
+      boardId,
+      parentListId: inProgressListIds,
+    });
+
+    const parentIdBySubColumnId = {};
+    subColumns.forEach((subColumn) => {
+      parentIdBySubColumnId[subColumn.id] = subColumn.parentListId;
+    });
+
+    const cardListIds = [...inProgressListIds, ...subColumns.map((subColumn) => subColumn.id)];
+
     // 진행 중 카드 조회 (활성 카드만: position != null, completedAt == null)
     const cardCriteria = {
       boardId,
-      listId: inProgressListIds,
+      listId: cardListIds,
       completedAt: null,
       position: { '!=': null },
     };
@@ -127,7 +142,10 @@ module.exports = {
     });
 
     cards.forEach((card) => {
-      if (!listMap[card.listId]) {
+      // 서브컬럼 카드는 부모 task 컬럼으로 귀속시킨다.
+      const targetListId = parentIdBySubColumnId[card.listId] || card.listId;
+
+      if (!listMap[targetListId]) {
         return;
       }
 
@@ -136,7 +154,7 @@ module.exports = {
       const entryDate = lastMove ? new Date(lastMove.movedAt) : new Date(card.createdAt);
       const ageDays = Math.max(0, Math.floor((now.getTime() - entryDate.getTime()) / MS_PER_DAY));
 
-      listMap[card.listId].cards.push({
+      listMap[targetListId].cards.push({
         cardId: card.id,
         name: card.name,
         age: ageDays,
