@@ -17,6 +17,7 @@
 
 ### Changed
 - 보드 뷰 토글 그룹에서 캘린더 항목을 제거하고, 공통 헤더 우측 메뉴(즐겨찾기 → 캘린더 → 알림 → 편집모드 순)로 진입점을 이동.
+- GitHub Actions 배포 워크플로(패키지/릴리스)에서 CHANGELOG 해당 섹션을 Job Summary로 표시하고, 릴리스 패키지 워크플로는 릴리스 노트에 CHANGELOG를 안전하게 추가(중복 방지).
 
 ### Fixed
 - 카드 완료 처리(`completedAt`)를 **done(closed) 컬럼**(및 'done' 서브컬럼)으로 이동할 때만 적용하도록 수정. **discard(폐기)는 더 이상 완료로 집계되지 않음** — Lead Time/Throughput/CFD/WIP 등 메트릭에 일관 반영.
