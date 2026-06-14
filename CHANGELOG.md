@@ -21,3 +21,4 @@
 ### Fixed
 - 카드 완료 처리(`completedAt`)를 **done(closed) 컬럼**(및 'done' 서브컬럼)으로 이동할 때만 적용하도록 수정. **discard(폐기)는 더 이상 완료로 집계되지 않음** — Lead Time/Throughput/CFD/WIP 등 메트릭에 일관 반영.
 - Lead Time Distribution이 Commitment Point 미설정 보드에서도 완료 카드를 집계하도록 시작 기준 폴백 추가(커밋먼트 통과 시점 → 없으면 카드 startDate → createdAt).
+- WIP Aging이 task 컬럼을 서브컬럼(sub-column)으로 분할해 쓰는 보드에서도 표시되도록 수정. 진행 중 task 컬럼의 서브컬럼 카드를 부모 컬럼 기준으로 집계(기존에는 최상위 컬럼만 조회해 서브컬럼 카드가 누락됨).
