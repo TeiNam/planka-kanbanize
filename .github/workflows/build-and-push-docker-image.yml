@@ -79,3 +79,27 @@ jobs:
           labels: ${{ steps.metadata.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Show changelog in job summary
+        env:
+          VERSION: ${{ steps.set-version.outputs.result }}
+        run: |
+          {
+            echo "## 🚀 Released ${{ github.event.release.tag_name }}"
+            echo ""
+            echo "## 📋 Changelog"
+            echo ""
+            if [ -f CHANGELOG.md ]; then
+              SECTION=$(awk -v ver="$VERSION" '
+                $0 ~ ("^## \\[" ver "\\]") {f=1; print; next}
+                /^## / && f {exit}
+                f {print}
+              ' CHANGELOG.md)
+              if [ -z "$SECTION" ]; then
+                SECTION=$(awk '/^## /{c++} c==1' CHANGELOG.md)
+              fi
+              echo "$SECTION"
+            else
+              echo "_CHANGELOG.md not found_"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

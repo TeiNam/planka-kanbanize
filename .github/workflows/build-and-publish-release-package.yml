@@ -7,6 +7,8 @@ on:
 jobs:
   build-and-publish-release-package:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -56,3 +58,41 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload ${{ github.event.release.tag_name }} planka-prebuild.zip
         working-directory: ./server
+
+      - name: Show changelog and append to release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="${TAG#v}"
+          if [ -f CHANGELOG.md ]; then
+            SECTION=$(awk -v ver="$VERSION" '
+              $0 ~ ("^## \\[" ver "\\]") {f=1; print; next}
+              /^## / && f {exit}
+              f {print}
+            ' CHANGELOG.md)
+            if [ -z "$SECTION" ]; then
+              SECTION=$(awk '/^## /{c++} c==1' CHANGELOG.md)
+            fi
+          else
+            SECTION="_CHANGELOG.md not found_"
+          fi
+
+          # Job Summary 출력
+          {
+            echo "## 📋 Changelog (${TAG})"
+            echo ""
+            echo "$SECTION"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # 릴리스 노트에 추가 (이미 추가돼 있으면 건너뜀 — 사용자 작성 노트 보존)
+          CURRENT=$(gh release view "$TAG" --json body -q .body 2>/dev/null || echo "")
+          case "$CURRENT" in
+            *"📋 Changelog"*)
+              echo "Release notes already contain changelog; skipping."
+              ;;
+            *)
+              printf '%s\n\n## 📋 Changelog\n\n%s\n' "$CURRENT" "$SECTION" \
+                | gh release edit "$TAG" --notes-file -
+              ;;
+          esac

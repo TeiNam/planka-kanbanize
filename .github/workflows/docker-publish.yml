@@ -115,3 +115,20 @@ jobs:
       - name: Inspect image
         run: |
           docker buildx imagetools inspect ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+
+      - name: Checkout repository (for changelog)
+        uses: actions/checkout@v4
+
+      - name: Show changelog in job summary
+        run: |
+          {
+            echo "## 📦 Published: ghcr.io/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}"
+            echo ""
+            echo "## 📋 Changelog"
+            echo ""
+            if [ -f CHANGELOG.md ]; then
+              awk '/^## /{c++} c==1' CHANGELOG.md
+            else
+              echo "_CHANGELOG.md not found_"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
