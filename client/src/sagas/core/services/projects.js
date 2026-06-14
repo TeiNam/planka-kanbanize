@@ -67,6 +67,7 @@ export function* handleProjectCreate({ id }) {
   let boardMemberships;
   let customFields;
   let notificationServices;
+  let calendarEvents;
 
   try {
     ({
@@ -80,6 +81,7 @@ export function* handleProjectCreate({ id }) {
         boardMemberships,
         customFields,
         notificationServices,
+        calendarEvents,
       },
     } = yield call(request, api.getProject, id));
   } catch {
@@ -97,6 +99,7 @@ export function* handleProjectCreate({ id }) {
       boardMemberships,
       customFields,
       notificationServices,
+      calendarEvents,
     ),
   );
 }
@@ -164,6 +167,7 @@ export function* handleProjectUpdate(project) {
   let customFieldValues;
   let notificationsToDelete;
   let notificationServices;
+  let calendarEvents;
 
   if (isCurrentUserAdmin && isChangedToShared && !isExternalAccessibleForCurrentUser) {
     const { boardId } = yield select(selectors.selectPath);
@@ -177,6 +181,7 @@ export function* handleProjectUpdate(project) {
           baseCustomFieldGroups,
           boards,
           notificationServices,
+          calendarEvents,
           users: users1,
           boardMemberships: boardMemberships1,
           customFields: customFields1,
@@ -251,6 +256,7 @@ export function* handleProjectUpdate(project) {
       customFieldValues,
       notificationsToDelete,
       notificationServices,
+      calendarEvents,
     ),
   );
 

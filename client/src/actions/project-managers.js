@@ -54,6 +54,7 @@ const handleProjectManagerCreate = (
   customFieldValues,
   notificationsToDelete,
   notificationServices,
+  calendarEvents,
 ) => ({
   type: ActionTypes.PROJECT_MANAGER_CREATE_HANDLE,
   payload: {
@@ -82,6 +83,7 @@ const handleProjectManagerCreate = (
     customFieldValues,
     notificationsToDelete,
     notificationServices,
+    calendarEvents,
   },
 });
 

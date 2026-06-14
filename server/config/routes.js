@@ -172,6 +172,10 @@ module.exports.routes = {
   'DELETE /api/swim-lanes/:id': 'swim-lanes/delete',
   'POST /api/boards/:boardId/swim-lanes/sort': 'swim-lanes/sort',
 
+  'POST /api/projects/:projectId/calendar-events': 'calendar-events/create',
+  'PATCH /api/calendar-events/:id': 'calendar-events/update',
+  'DELETE /api/calendar-events/:id': 'calendar-events/delete',
+
   'POST /api/boards/:boardId/commitment-points': 'commitment-points/create',
   'PATCH /api/commitment-points/:id': 'commitment-points/update',
   'DELETE /api/commitment-points/:id': 'commitment-points/delete',
@@ -254,6 +258,8 @@ module.exports.routes = {
   'GET /api/boards/:boardId/metrics/throughput': 'metrics/show-throughput',
   'GET /api/boards/:boardId/metrics/wip-aging': 'metrics/show-wip-aging',
   'GET /api/boards/:boardId/metrics/summary': 'metrics/show-summary',
+
+  'GET /api/projects/:projectId/holidays': 'calendar/holidays',
 
   'GET /api/boards/:boardId/actions': 'actions/index-in-board',
   'GET /api/cards/:cardId/actions': 'actions/index-in-card',

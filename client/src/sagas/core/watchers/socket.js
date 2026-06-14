@@ -305,6 +305,18 @@ const createSocketEventsChannel = () =>
       emit(entryActions.handleSwimLaneDelete(item));
     };
 
+    const handleCalendarEventCreate = ({ item }) => {
+      emit(entryActions.handleCalendarEventCreate(item));
+    };
+
+    const handleCalendarEventUpdate = ({ item }) => {
+      emit(entryActions.handleCalendarEventUpdate(item));
+    };
+
+    const handleCalendarEventDelete = ({ item }) => {
+      emit(entryActions.handleCalendarEventDelete(item));
+    };
+
     const handleCommitmentPointCreate = ({ item }) => {
       emit(entryActions.handleCommitmentPointCreate(item));
     };
@@ -477,6 +489,10 @@ const createSocketEventsChannel = () =>
     socket.on('swimLaneUpdate', handleSwimLaneUpdate);
     socket.on('swimLaneDelete', handleSwimLaneDelete);
 
+    socket.on('calendarEventCreate', handleCalendarEventCreate);
+    socket.on('calendarEventUpdate', handleCalendarEventUpdate);
+    socket.on('calendarEventDelete', handleCalendarEventDelete);
+
     socket.on('commitmentPointCreate', handleCommitmentPointCreate);
     socket.on('commitmentPointUpdate', handleCommitmentPointUpdate);
     socket.on('commitmentPointDelete', handleCommitmentPointDelete);
@@ -602,6 +618,10 @@ const createSocketEventsChannel = () =>
       socket.off('swimLaneCreate', handleSwimLaneCreate);
       socket.off('swimLaneUpdate', handleSwimLaneUpdate);
       socket.off('swimLaneDelete', handleSwimLaneDelete);
+
+      socket.off('calendarEventCreate', handleCalendarEventCreate);
+      socket.off('calendarEventUpdate', handleCalendarEventUpdate);
+      socket.off('calendarEventDelete', handleCalendarEventDelete);
 
       socket.off('commitmentPointCreate', handleCommitmentPointCreate);
       socket.off('commitmentPointUpdate', handleCommitmentPointUpdate);

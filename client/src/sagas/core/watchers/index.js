@@ -31,6 +31,7 @@ import activities from './activities';
 import notifications from './notifications';
 import notificationServices from './notification-services';
 import swimLanes from './swim-lanes';
+import calendarEvents from './calendar-events';
 import commitmentPoints from './commitment-points';
 import classesOfService from './classes-of-service';
 import blockers from './blockers';
@@ -69,6 +70,7 @@ export default [
   notifications,
   notificationServices,
   swimLanes,
+  calendarEvents,
   commitmentPoints,
   classesOfService,
   blockers,

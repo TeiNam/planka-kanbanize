@@ -3,7 +3,7 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import classNames from 'classnames';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router';
@@ -13,7 +13,12 @@ import { usePopup } from '../../../lib/popup';
 import selectors from '../../../selectors';
 import entryActions from '../../../entry-actions';
 import Paths from '../../../constants/Paths';
-import { BoardMembershipRoles, BoardViews, UserRoles } from '../../../constants/Enums';
+import {
+  BoardContexts,
+  BoardMembershipRoles,
+  BoardViews,
+  UserRoles,
+} from '../../../constants/Enums';
 import UserAvatar from '../../users/UserAvatar';
 import UserActionsStep from '../../users/UserActionsStep';
 import NotificationsStep from '../../notifications/NotificationsStep';
@@ -73,6 +78,9 @@ const Header = React.memo(() => {
 
   const dispatch = useDispatch();
 
+  // 캘린더 뷰로 진입하기 직전에 표시되던 뷰를 기억(재토글 시 직전 뷰로 복귀)
+  const prevViewRef = useRef(null);
+
   const handleToggleFavoritesClick = useCallback(() => {
     dispatch(entryActions.toggleFavorites(!isFavoritesEnabled));
   }, [isFavoritesEnabled, dispatch]);
@@ -80,6 +88,21 @@ const Header = React.memo(() => {
   const handleToggleEditModeClick = useCallback(() => {
     dispatch(entryActions.toggleEditMode(!isEditModeEnabled));
   }, [isEditModeEnabled, dispatch]);
+
+  // 캘린더 토글: 현재 보드가 열려 있을 때만 동작한다. 캘린더가 이미 활성이면 직전 뷰로 복귀하고,
+  // 아니면 현재 뷰를 기억해 두었다가 캘린더 뷰로 전환한다.
+  const handleToggleCalendarClick = useCallback(() => {
+    if (!board) {
+      return;
+    }
+
+    if (board.view === BoardViews.CALENDAR) {
+      dispatch(entryActions.updateViewInCurrentBoard(prevViewRef.current || BoardViews.KANBAN));
+    } else {
+      prevViewRef.current = board.view;
+      dispatch(entryActions.updateViewInCurrentBoard(BoardViews.CALENDAR));
+    }
+  }, [board, dispatch]);
 
   const handleProjectSettingsClick = useCallback(() => {
     if (!canEditProject) {
@@ -132,6 +155,26 @@ const Header = React.memo(() => {
               />
             </Menu.Item>
           )}
+          {board && board.context === BoardContexts.BOARD && (
+            <Menu.Item
+              className={classNames(styles.item, styles.itemHoverable)}
+              onClick={handleToggleCalendarClick}
+            >
+              <Icon
+                fitted
+                name={board.view === BoardViews.CALENDAR ? 'calendar' : 'calendar outline'}
+                className={classNames(board.view === BoardViews.CALENDAR && styles.itemIconEnabled)}
+              />
+            </Menu.Item>
+          )}
+          <NotificationsPopup>
+            <Menu.Item className={classNames(styles.item, styles.itemHoverable)}>
+              <Icon fitted name="bell" />
+              {notificationIds.length > 0 && (
+                <span className={styles.notification}>{notificationIds.length}</span>
+              )}
+            </Menu.Item>
+          </NotificationsPopup>
           {withEditModeToggler && (
             <Menu.Item
               className={classNames(styles.item, styles.itemHoverable)}
@@ -144,14 +187,6 @@ const Header = React.memo(() => {
               />
             </Menu.Item>
           )}
-          <NotificationsPopup>
-            <Menu.Item className={classNames(styles.item, styles.itemHoverable)}>
-              <Icon fitted name="bell" />
-              {notificationIds.length > 0 && (
-                <span className={styles.notification}>{notificationIds.length}</span>
-              )}
-            </Menu.Item>
-          </NotificationsPopup>
           <UserActionsPopup>
             <Menu.Item className={classNames(styles.item, styles.itemHoverable)}>
               <span className={styles.userName}>{user.name}</span>

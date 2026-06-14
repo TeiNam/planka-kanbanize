@@ -49,5 +49,19 @@
         border-bottom-right-radius: 3px;
       }
     }
+
+    // 캘린더 버튼은 활성 상태에서도 클릭 가능하므로(R1.4 토글),
+    // disabled 버튼과 동일한 활성 표시를 클래스로 제공한다(R1.3).
+    .buttonActive {
+      &:enabled {
+        background: rgba(0, 0, 0, 0.24);
+        color: #fff;
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.24);
+          color: #fff;
+        }
+      }
+    }
   }
 }

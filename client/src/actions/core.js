@@ -30,6 +30,7 @@ const initializeCore = (
   customFieldValues,
   notifications,
   notificationServices,
+  calendarEvents,
 ) => ({
   type: ActionTypes.CORE_INITIALIZE,
   payload: {
@@ -57,6 +58,7 @@ const initializeCore = (
     customFieldValues,
     notifications,
     notificationServices,
+    calendarEvents,
   },
 });
 

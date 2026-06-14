@@ -22,6 +22,7 @@ export default class extends BaseModel {
     isFavorite: attr({
       getDefault: () => false,
     }),
+    holidayApiEndpoint: attr(),
     ownerProjectManagerId: oneToOne({
       to: 'ProjectManager',
       as: 'ownerProjectManager',

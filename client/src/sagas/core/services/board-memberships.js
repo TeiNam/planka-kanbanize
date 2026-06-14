@@ -75,6 +75,7 @@ export function* handleBoardMembershipCreate(boardMembership, users) {
   let customFieldValues;
   let notificationsToDelete;
   let notificationServices;
+  let calendarEvents;
 
   if (isCurrentUser && !isExternalAccessibleForCurrentUser) {
     const { boardId } = yield select(selectors.selectPath);
@@ -88,6 +89,7 @@ export function* handleBoardMembershipCreate(boardMembership, users) {
           baseCustomFieldGroups,
           boards,
           notificationServices,
+          calendarEvents,
           users: users1,
           boardMemberships: boardMemberships1,
           customFields: customFields1,
@@ -161,6 +163,7 @@ export function* handleBoardMembershipCreate(boardMembership, users) {
       customFieldValues,
       notificationsToDelete,
       notificationServices,
+      calendarEvents,
     ),
   );
 }

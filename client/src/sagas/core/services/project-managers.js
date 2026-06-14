@@ -69,6 +69,7 @@ export function* handleProjectManagerCreate(projectManager, users) {
   let customFieldValues;
   let notificationsToDelete;
   let notificationServices;
+  let calendarEvents;
 
   if (isCurrentUser) {
     const { boardId } = yield select(selectors.selectPath);
@@ -87,6 +88,7 @@ export function* handleProjectManagerCreate(projectManager, users) {
           baseCustomFieldGroups,
           boards,
           notificationServices,
+          calendarEvents,
           users: users1,
           boardMemberships: boardMemberships1,
           customFields: customFields1,
@@ -164,6 +166,7 @@ export function* handleProjectManagerCreate(projectManager, users) {
       customFieldValues,
       notificationsToDelete,
       notificationServices,
+      calendarEvents,
     ),
   );
 }

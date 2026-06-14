@@ -156,6 +156,11 @@ module.exports = {
       defaultsTo: false, // TODO: implement via normalizeValues?
       columnName: 'is_hidden',
     },
+    holidayApiEndpoint: {
+      type: 'string',
+      allowNull: true,
+      columnName: 'holiday_api_endpoint',
+    },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
     //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
@@ -180,6 +185,10 @@ module.exports = {
     },
     boards: {
       collection: 'Board',
+      via: 'projectId',
+    },
+    calendarEvents: {
+      collection: 'CalendarEvent',
       via: 'projectId',
     },
   },

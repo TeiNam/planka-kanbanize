@@ -1,0 +1,84 @@
+/* 셀 내부 항목(공휴일 배지 / 일정 / 마감일 카드) 공용 스타일.
+   세 종류(공휴일/일정/마감일)와 일정의 두 종류(all-day/time-based)를 시각적으로 구분한다(R8.2). */
+
+/* ── 공휴일 배지 ─────────────────────────────────────────────── */
+.holidayBadge {
+  background: rgba(255, 0, 0, 0.08);
+  border-radius: 4px;
+  color: #d0021b;
+  font-size: 13px;
+  font-weight: bold;
+  line-height: 1.4;
+  overflow: hidden;
+  padding: 2px 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── 일정(Event) ─────────────────────────────────────────────── */
+.eventItem {
+  align-items: baseline;
+  border-radius: 4px;
+  color: #1b1c1d;
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow: hidden;
+  padding: 2px 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.eventItem:hover {
+  filter: brightness(0.96);
+}
+
+/* all-day 일정: 채워진 배경(시각 라벨 없음, R7.2) */
+.eventItemAllDay {
+  background: #d6e6ff;
+}
+
+/* time-based 일정: 좌측 컬러 바 + 옅은 배경으로 all-day 와 구분(R7.3) */
+.eventItemTimeBased {
+  background: #dcf0e1;
+  border-left: 3px solid #21ba45;
+  padding-left: 5px;
+}
+
+.eventTime {
+  color: #2a4a5c;
+  flex: 0 0 auto;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.eventName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── 마감일 카드(Due_Date_Item) ──────────────────────────────────
+   일정과 명확히 구분되도록 주황 좌측 바 + 주황 계열 배경을 사용한다(R8.2). 읽기 전용. */
+.dueDateItem {
+  background: #ffe8cc;
+  border-left: 3px solid #f2711c;
+  border-radius: 4px;
+  color: #7a3e00;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow: hidden;
+  padding: 2px 6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dueDateItem:hover {
+  background: #ffdbb0;
+}
+
+.dueDateName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

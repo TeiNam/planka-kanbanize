@@ -18,6 +18,7 @@ import CardModal from '../../cards/CardModal';
 import BoardActivitiesModal from '../../activities/BoardActivitiesModal';
 
 const MetricsDashboard = lazy(() => import('../../metrics/MetricsDashboard'));
+const CalendarContent = lazy(() => import('../../calendar/CalendarContent'));
 
 const Board = React.memo(() => {
   const board = useSelector(selectors.selectCurrentBoard);
@@ -27,9 +28,11 @@ const Board = React.memo(() => {
 
   // 메트릭 뷰: 뷰 전환 버튼 또는 URL 경로로 접근 가능
   const isMetricsView = board.view === BoardViews.METRICS || isMetricsRoute;
+  // 캘린더 뷰: client-local 상태(METRICS와 동일 패턴)
+  const isCalendarView = board.view === BoardViews.CALENDAR;
 
   let Content;
-  if (!isMetricsView) {
+  if (!isMetricsView && !isCalendarView) {
     if (board.view === BoardViews.KANBAN) {
       Content = KanbanContent;
     } else {
@@ -61,17 +64,30 @@ const Board = React.memo(() => {
     }
   }
 
+  let mainNode;
+  if (isMetricsView) {
+    mainNode = (
+      <Suspense fallback={<Loader active inline="centered" />}>
+        <MetricsDashboard boardId={board.id} />
+      </Suspense>
+    );
+  } else if (isCalendarView) {
+    mainNode = (
+      <Suspense fallback={<Loader active inline="centered" />}>
+        <CalendarContent projectId={board.projectId} />
+      </Suspense>
+    );
+  } else {
+    mainNode = (
+      <ShortcutsProvider>
+        <Content />
+      </ShortcutsProvider>
+    );
+  }
+
   return (
     <>
-      {isMetricsView ? (
-        <Suspense fallback={<Loader active inline="centered" />}>
-          <MetricsDashboard boardId={board.id} />
-        </Suspense>
-      ) : (
-        <ShortcutsProvider>
-          <Content />
-        </ShortcutsProvider>
-      )}
+      {mainNode}
       {modalNode}
     </>
   );

@@ -100,6 +100,7 @@ export function* handleLocationChange() {
   let commitmentPoints;
   let classesOfService;
   let decorators;
+  let calendarEvents;
   let cardDecorators;
   let blockers;
   let blockerLinkedCards;
@@ -152,6 +153,7 @@ export function* handleLocationChange() {
                 commitmentPoints,
                 classesOfService,
                 decorators,
+                calendarEvents,
                 cardDecorators,
                 blockers,
                 blockerLinkedCards,
@@ -231,6 +233,7 @@ export function* handleLocationChange() {
               commitmentPoints,
               classesOfService,
               decorators,
+              calendarEvents,
               cardDecorators,
               blockers,
               blockerLinkedCards,
@@ -289,6 +292,7 @@ export function* handleLocationChange() {
       commitmentPoints,
       classesOfService,
       decorators,
+      calendarEvents,
       cardDecorators,
       blockers,
       blockerLinkedCards,
