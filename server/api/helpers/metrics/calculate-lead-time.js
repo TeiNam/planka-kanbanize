@@ -106,16 +106,18 @@ module.exports = {
     });
 
     // Lead Time 계산 (일 단위)
+    // 시작 기준: forward Commitment Point 통과 시점이 있으면 그 시점,
+    // 없으면 카드의 startDate(태스크 컬럼 최초 진입), 그것도 없으면 createdAt 로 폴백한다.
+    // (Commitment Point 미설정 보드에서도 완료 카드는 Lead Time 에 집계되도록.)
     const values = [];
     filteredCards.forEach((card) => {
       const firstLog = firstForwardLogByCardId[card.id];
-      if (!firstLog) {
-        return;
-      }
+      const startMsForCard = firstLog
+        ? new Date(firstLog.passedAt).getTime()
+        : new Date(card.startDate || card.createdAt).getTime();
 
-      const passedAt = new Date(firstLog.passedAt).getTime();
       const completedAt = new Date(card.completedAt).getTime();
-      const leadTimeDays = Math.max(0, Math.ceil((completedAt - passedAt) / MS_PER_DAY));
+      const leadTimeDays = Math.max(0, Math.ceil((completedAt - startMsForCard) / MS_PER_DAY));
       values.push(leadTimeDays);
     });
 

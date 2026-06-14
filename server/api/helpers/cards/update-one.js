@@ -371,11 +371,9 @@ module.exports = {
         // completedAt / startDate 자동 계산을 메인 update에 합쳐 한 번에 반영.
         // (분리해서 후속 update를 하면 클라이언트의 updateCard.success가 stale한
         // 응답으로 카드를 덮어써 보드 즉시 반영이 깨진다.)
-        const isTerminal = (l) =>
-          l &&
-          (l.type === List.Types.CLOSED ||
-            l.type === List.Types.DISCARD ||
-            l.subColumnType === 'done');
+        // 완료(completedAt)는 done(closed) 컬럼 또는 'done' 서브컬럼으로 이동할 때만 설정한다.
+        // discard(폐기)는 완료가 아니므로 제외한다.
+        const isTerminal = (l) => l && (l.type === List.Types.CLOSED || l.subColumnType === 'done');
         const fromTerminal = isTerminal(inputs.list);
         const toTerminal = isTerminal(values.list);
 
