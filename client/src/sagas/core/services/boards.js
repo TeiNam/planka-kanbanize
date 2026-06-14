@@ -118,6 +118,7 @@ export function* fetchBoard(id) {
   let commitmentPoints;
   let classesOfService;
   let decorators;
+  let calendarEvents;
   let cardDecorators;
   let blockers;
   let blockerLinkedCards;
@@ -145,6 +146,7 @@ export function* fetchBoard(id) {
         commitmentPoints,
         classesOfService,
         decorators,
+        calendarEvents,
         cardDecorators,
         blockers,
         blockerLinkedCards,
@@ -177,6 +179,7 @@ export function* fetchBoard(id) {
       commitmentPoints,
       classesOfService,
       decorators,
+      calendarEvents,
       cardDecorators,
       blockers,
       blockerLinkedCards,

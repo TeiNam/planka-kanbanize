@@ -40,18 +40,22 @@ const RightSide = React.memo(() => {
     <>
       <div className={styles.action}>
         <div className={styles.buttonGroup}>
-          {views.map((view) => (
-            <button
-              key={view}
-              type="button"
-              value={view}
-              disabled={view === board.view}
-              className={styles.button}
-              onClick={handleSelectViewClick}
-            >
-              <Icon fitted name={BoardViewIcons[view]} />
-            </button>
-          ))}
+          {views.map((view) => {
+            const isActive = view === board.view;
+
+            return (
+              <button
+                key={view}
+                type="button"
+                value={view}
+                disabled={isActive}
+                className={styles.button}
+                onClick={handleSelectViewClick}
+              >
+                <Icon fitted name={BoardViewIcons[view]} />
+              </button>
+            );
+          })}
         </div>
       </div>
       <div className={styles.action}>

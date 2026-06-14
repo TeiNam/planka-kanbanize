@@ -23,6 +23,7 @@ export function* fetchBoardByCurrentPath() {
   let labels;
   let lists;
   let cards;
+  let calendarEvents;
   let cardMemberships1;
   let cardMemberships2;
   let cardLabels1;
@@ -71,6 +72,7 @@ export function* fetchBoardByCurrentPath() {
           labels,
           lists,
           cards,
+          calendarEvents,
           users: users2,
           cardMemberships: cardMemberships2,
           cardLabels: cardLabels2,
@@ -92,6 +94,7 @@ export function* fetchBoardByCurrentPath() {
     labels,
     lists,
     cards,
+    calendarEvents,
     project: projects[0],
     users: mergeRecords(users1, users2),
     cardMemberships: mergeRecords(cardMemberships1, cardMemberships2),

@@ -68,6 +68,11 @@
  *                 type: boolean
  *                 description: Whether the project is marked as favorite by the current user
  *                 example: true
+ *               holidayApiEndpoint:
+ *                 type: string
+ *                 maxLength: 2048
+ *                 description: Holiday API base URL (http/https only, empty string clears it)
+ *                 example: https://holidays.example.com/api
  *     responses:
  *       200:
  *         description: Project updated successfully
@@ -95,6 +100,10 @@
  */
 
 const { idInput } = require('../../../utils/inputs');
+const { isUrl } = require('../../../utils/validators');
+
+// 공휴일 API endpoint 검증: 빈 문자열(설정 해제) 또는 http/https URL 만 허용
+const isHolidayApiEndpoint = (value) => value === '' || isUrl(value);
 
 const Errors = {
   NOT_ENOUGH_RIGHTS: {
@@ -164,6 +173,11 @@ module.exports = {
     isFavorite: {
       type: 'boolean',
     },
+    holidayApiEndpoint: {
+      type: 'string',
+      maxLength: 2048,
+      custom: isHolidayApiEndpoint,
+    },
   },
 
   exits: {
@@ -229,6 +243,7 @@ module.exports = {
         'description',
         'backgroundType',
         'backgroundGradient',
+        'holidayApiEndpoint',
       );
     }
 
@@ -287,6 +302,7 @@ module.exports = {
       'backgroundGradient',
       'isHidden',
       'isFavorite',
+      'holidayApiEndpoint',
     ]);
 
     project = await sails.helpers.projects.updateOne

@@ -25,6 +25,7 @@ import Activity from './Activity';
 import Notification from './Notification';
 import NotificationService from './NotificationService';
 import SwimLane from './SwimLane';
+import CalendarEvent from './CalendarEvent';
 import CommitmentPoint from './CommitmentPoint';
 import ClassOfService from './ClassOfService';
 import Decorator from './Decorator';
@@ -57,6 +58,7 @@ export {
   Notification,
   NotificationService,
   SwimLane,
+  CalendarEvent,
   CommitmentPoint,
   ClassOfService,
   Decorator,

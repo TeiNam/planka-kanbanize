@@ -58,6 +58,7 @@ const handleProjectCreate = (
   boardMemberships,
   customFields,
   notificationServices,
+  calendarEvents,
 ) => ({
   type: ActionTypes.PROJECT_CREATE_HANDLE,
   payload: {
@@ -70,6 +71,7 @@ const handleProjectCreate = (
     boardMemberships,
     customFields,
     notificationServices,
+    calendarEvents,
   },
 });
 
@@ -120,6 +122,7 @@ const handleProjectUpdate = (
   customFieldValues,
   notificationsToDelete,
   notificationServices,
+  calendarEvents,
 ) => ({
   type: ActionTypes.PROJECT_UPDATE_HANDLE,
   payload: {
@@ -146,6 +149,7 @@ const handleProjectUpdate = (
     customFieldValues,
     notificationsToDelete,
     notificationServices,
+    calendarEvents,
   },
 });
 

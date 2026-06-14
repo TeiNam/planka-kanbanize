@@ -52,6 +52,7 @@ export const BoardViews = {
   GRID: 'grid',
   LIST: 'list',
   METRICS: 'metrics',
+  CALENDAR: 'calendar',
 };
 
 export const BoardContexts = {
@@ -99,6 +100,12 @@ export const ListSortFieldNames = {
 export const CardTypes = {
   PROJECT: 'project',
   STORY: 'story',
+};
+
+// 캘린더 일정 종류 (서버 CalendarEvent.Kinds 와 값 일치)
+export const CalendarEventKinds = {
+  ALL_DAY: 'all_day',
+  TIME_BASED: 'time_based',
 };
 
 export const AttachmentTypes = {

@@ -52,6 +52,7 @@ const handleBoardMembershipCreate = (
   customFieldValues,
   notificationsToDelete,
   notificationServices,
+  calendarEvents,
 ) => ({
   type: ActionTypes.BOARD_MEMBERSHIP_CREATE_HANDLE,
   payload: {
@@ -78,6 +79,7 @@ const handleBoardMembershipCreate = (
     customFieldValues,
     notificationsToDelete,
     notificationServices,
+    calendarEvents,
   },
 });
 

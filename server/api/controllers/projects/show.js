@@ -163,6 +163,8 @@ module.exports = {
 
     const backgroundImages = await BackgroundImage.qm.getByProjectId(project.id);
 
+    const calendarEvents = await CalendarEvent.qm.getByProjectId(project.id);
+
     const baseCustomFieldGroups = await BaseCustomFieldGroup.qm.getByProjectId(project.id);
     const baseCustomFieldGroupsIds = sails.helpers.utils.mapRecords(baseCustomFieldGroups);
 
@@ -184,6 +186,7 @@ module.exports = {
         boardMemberships,
         customFields,
         notificationServices,
+        calendarEvents,
         users: sails.helpers.users.presentMany(users, currentUser),
         backgroundImages: sails.helpers.backgroundImages.presentMany(backgroundImages),
       },

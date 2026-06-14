@@ -210,6 +210,10 @@ module.exports = {
     const classesOfService = await ClassOfService.qm.getByBoardId(board.id);
     const decorators = await Decorator.qm.getByBoardId(board.id);
 
+    // 캘린더 기능은 PROJECT 단위이므로 보드의 프로젝트 캘린더 이벤트를 함께 내려준다.
+    // (소유권은 프로젝트에 그대로 두고, 보드 진입 경로에서도 캘린더가 비지 않도록 함)
+    const calendarEvents = await CalendarEvent.qm.getByProjectId(board.projectId);
+
     const finiteLists = lists.filter((list) => sails.helpers.lists.isFinite(list));
     const finiteListIds = sails.helpers.utils.mapRecords(finiteLists);
 
@@ -285,6 +289,7 @@ module.exports = {
         commitmentPoints,
         classesOfService,
         decorators,
+        calendarEvents,
         cardDecorators,
         blockers,
         blockerLinkedCards,
