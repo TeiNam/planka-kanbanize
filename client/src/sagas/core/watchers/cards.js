@@ -27,6 +27,9 @@ export default function* cardsWatchers() {
     takeEvery(EntryActionTypes.CARD_IN_CURRENT_LIST_CREATE, ({ payload: { data, autoOpen } }) =>
       services.createCardInCurrentList(data, autoOpen),
     ),
+    takeEvery(EntryActionTypes.CARDS_IMPORT_TO_CURRENT_BOARD, ({ payload: { rows, skipped } }) =>
+      services.importCardsToCurrentBoard(rows, skipped),
+    ),
     takeEvery(EntryActionTypes.CARD_CREATE_HANDLE, ({ payload: { card } }) =>
       services.handleCardCreate(card),
     ),

@@ -103,6 +103,15 @@ module.exports = {
         }
       }
 
+      // 말머리 문자열이 변경되면 순번을 1부터 다시 시작한다.
+      // (예: "DB" → "API"로 바꾸면 [API-01]부터 시작)
+      if (
+        !_.isUndefined(values.cardPrefix) &&
+        (values.cardPrefix || '') !== (inputs.record.cardPrefix || '')
+      ) {
+        values.cardPrefixNextNumber = 1;
+      }
+
       board = await Board.qm.updateOne(inputs.record.id, values);
 
       if (!board) {

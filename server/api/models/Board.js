@@ -78,6 +78,21 @@
  *           default: false
  *           description: Whether to expand task lists by default
  *           example: false
+ *         cardPrefixEnabled:
+ *           type: boolean
+ *           default: false
+ *           description: Whether to auto-prepend an incrementing prefix to new card names
+ *           example: false
+ *         cardPrefix:
+ *           type: string
+ *           nullable: true
+ *           description: Prefix text prepended to new card names (e.g. "DB" → "[DB-01] ...")
+ *           example: DB
+ *         cardPrefixNextNumber:
+ *           type: number
+ *           default: 1
+ *           description: Next sequential number to assign to a prefixed card
+ *           example: 1
  *         createdAt:
  *           type: string
  *           format: date-time
@@ -184,6 +199,21 @@ module.exports = {
       type: 'number',
       defaultsTo: 1,
       columnName: 'expedite_wip_limit',
+    },
+    cardPrefixEnabled: {
+      type: 'boolean',
+      defaultsTo: false,
+      columnName: 'card_prefix_enabled',
+    },
+    cardPrefix: {
+      type: 'string',
+      allowNull: true,
+      columnName: 'card_prefix',
+    },
+    cardPrefixNextNumber: {
+      type: 'number',
+      defaultsTo: 1,
+      columnName: 'card_prefix_next_number',
     },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗

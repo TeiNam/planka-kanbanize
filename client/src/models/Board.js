@@ -62,6 +62,15 @@ export default class extends BaseModel {
     expediteWipLimit: attr({
       getDefault: () => 1,
     }),
+    cardPrefixEnabled: attr({
+      getDefault: () => false,
+    }),
+    cardPrefix: attr({
+      getDefault: () => null,
+    }),
+    cardPrefixNextNumber: attr({
+      getDefault: () => 1,
+    }),
     projectId: fk({
       to: 'Project',
       as: 'project',
