@@ -12,6 +12,7 @@ import DefaultCardType from './DefaultCardType';
 import SystemWipLimit from './SystemWipLimit';
 import WipLimitMode from './WipLimitMode';
 import SwimLanesSection from './SwimLanesSection';
+import CardPrefix from './CardPrefix';
 import Others from './Others';
 
 import styles from './PreferencesPane.module.scss';
@@ -55,6 +56,12 @@ const PreferencesPane = React.memo(() => {
         </Header>
       </Divider>
       <SwimLanesSection />
+      <Divider horizontal>
+        <Header as="h4">
+          {t('common.cardPrefix', { context: 'title', defaultValue: 'Card prefix' })}
+        </Header>
+      </Divider>
+      <CardPrefix />
       <Divider horizontal>
         <Header as="h4">
           {t('common.others', {

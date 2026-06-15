@@ -95,6 +95,7 @@
  */
 
 const { idInput } = require('../../../utils/inputs');
+const { isCardPrefix } = require('../../../utils/card-prefix');
 
 const Errors = {
   BOARD_NOT_FOUND: {
@@ -164,6 +165,14 @@ module.exports = {
       min: 1,
       max: 2,
     },
+    cardPrefixEnabled: {
+      type: 'boolean',
+    },
+    cardPrefix: {
+      type: 'string',
+      allowNull: true,
+      custom: isCardPrefix,
+    },
     isSubscribed: {
       type: 'boolean',
     },
@@ -214,6 +223,8 @@ module.exports = {
         'isSwimLanesEnabled',
         'isExpediteLaneEnabled',
         'expediteWipLimit',
+        'cardPrefixEnabled',
+        'cardPrefix',
       );
     }
     if (isBoardMember) {
@@ -238,6 +249,8 @@ module.exports = {
       'isSwimLanesEnabled',
       'isExpediteLaneEnabled',
       'expediteWipLimit',
+      'cardPrefixEnabled',
+      'cardPrefix',
       'isSubscribed',
     ]);
 

@@ -3,6 +3,8 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
+const { buildPrefixedName } = require('../../../utils/card-prefix');
+
 module.exports = {
   inputs: {
     values: {
@@ -77,6 +79,19 @@ module.exports = {
 
     if (List.TYPE_STATE_BY_TYPE[values.list.type] === List.TypeStates.CLOSED) {
       values.isClosed = true;
+    }
+
+    // 보드에 카드 말머리가 활성화되어 있으면 카드명 앞에 "[말머리-순번] "을 붙인다.
+    // 순번은 보드별로 원자적으로 점유해 동시 생성 시에도 중복되지 않도록 한다.
+    const { board } = values;
+    const prefix = board.cardPrefixEnabled && board.cardPrefix ? board.cardPrefix.trim() : '';
+
+    if (prefix && values.name) {
+      const number = await Board.qm.claimCardPrefixNumber(board.id);
+
+      if (number !== null) {
+        values.name = buildPrefixedName(prefix, number, values.name);
+      }
     }
 
     const card = await Card.qm.createOne({
