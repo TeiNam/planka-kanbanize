@@ -3,10 +3,11 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import { Icon, Menu } from 'semantic-ui-react';
 import { Popup } from '../../../../lib/custom-ui';
 
@@ -16,6 +17,7 @@ import { useSteps } from '../../../../hooks';
 import { BoardContexts, BoardMembershipRoles } from '../../../../constants/Enums';
 import { BoardContextIcons } from '../../../../constants/Icons';
 import exportBoardToExcel from '../../../../utils/export-board-to-excel';
+import importBoardFromExcel from '../../../../utils/import-board-from-excel';
 import ConfirmationStep from '../../../common/ConfirmationStep';
 import CustomFieldGroupsStep from '../../../custom-field-groups/CustomFieldGroupsStep';
 
@@ -30,28 +32,33 @@ const ActionsStep = React.memo(({ onClose }) => {
   const board = useSelector(selectors.selectCurrentBoard);
   const exportData = useSelector(selectors.selectExportDataForCurrentBoard);
 
-  const { withSubscribe, withCustomFieldGroups, withTrashEmptier } = useSelector((state) => {
-    const isManager = selectors.selectIsCurrentUserManagerForCurrentProject(state);
-    const boardMembership = selectors.selectCurrentUserMembershipForCurrentBoard(state);
+  const { withSubscribe, withCustomFieldGroups, withImport, withTrashEmptier } = useSelector(
+    (state) => {
+      const isManager = selectors.selectIsCurrentUserManagerForCurrentProject(state);
+      const boardMembership = selectors.selectCurrentUserMembershipForCurrentBoard(state);
 
-    let isMember = false;
-    let isEditor = false;
+      let isMember = false;
+      let isEditor = false;
 
-    if (boardMembership) {
-      isMember = true;
-      isEditor = boardMembership.role === BoardMembershipRoles.EDITOR;
-    }
+      if (boardMembership) {
+        isMember = true;
+        isEditor = boardMembership.role === BoardMembershipRoles.EDITOR;
+      }
 
-    return {
-      withSubscribe: isMember, // TODO: rename?
-      withCustomFieldGroups: isEditor,
-      withTrashEmptier: board.context === BoardContexts.TRASH && (isManager || isEditor),
-    };
-  }, shallowEqual);
+      return {
+        withSubscribe: isMember, // TODO: rename?
+        withCustomFieldGroups: isEditor,
+        withImport: isEditor,
+        withTrashEmptier: board.context === BoardContexts.TRASH && (isManager || isEditor),
+      };
+    },
+    shallowEqual,
+  );
 
   const dispatch = useDispatch();
   const [t] = useTranslation();
   const [step, openStep, handleBack] = useSteps();
+  const importInputRef = useRef(null);
 
   const handleToggleSubscriptionClick = useCallback(() => {
     dispatch(
@@ -99,6 +106,36 @@ const ActionsStep = React.memo(({ onClose }) => {
     );
     onClose();
   }, [exportData, onClose]);
+
+  const handleImportExcelClick = useCallback(() => {
+    if (importInputRef.current) {
+      importInputRef.current.click();
+    }
+  }, []);
+
+  const handleImportFileChange = useCallback(
+    async (event) => {
+      const input = event.target;
+      const file = input.files && input.files[0];
+      // 같은 파일을 다시 선택해도 onChange가 발생하도록 초기화
+      input.value = '';
+      if (!file) {
+        return;
+      }
+
+      let result;
+      try {
+        result = await importBoardFromExcel(file);
+      } catch {
+        toast.error(t('common.importFailed', { defaultValue: '엑셀 파일을 읽지 못했습니다.' }));
+        return;
+      }
+
+      dispatch(entryActions.importCardsToCurrentBoard(result.rows, result.skipped));
+      onClose();
+    },
+    [dispatch, onClose, t],
+  );
 
   if (step) {
     switch (step.type) {
@@ -156,6 +193,12 @@ const ActionsStep = React.memo(({ onClose }) => {
             <Icon name="file excel outline" className={styles.menuItemIcon} />
             {t('action.exportToExcel', { defaultValue: '엑셀로 내보내기' })}
           </Menu.Item>
+          {withImport && (
+            <Menu.Item className={styles.menuItem} onClick={handleImportExcelClick}>
+              <Icon name="upload" className={styles.menuItemIcon} />
+              {t('action.importFromExcel', { defaultValue: '엑셀에서 가져오기' })}
+            </Menu.Item>
+          )}
           {withTrashEmptier && (
             <>
               <hr className={styles.divider} />
@@ -183,6 +226,13 @@ const ActionsStep = React.memo(({ onClose }) => {
             ))}
           </>
         </Menu>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept=".xlsx"
+          style={{ display: 'none' }}
+          onChange={handleImportFileChange}
+        />
       </Popup.Content>
     </>
   );

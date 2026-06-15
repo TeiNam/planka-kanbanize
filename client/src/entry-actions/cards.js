@@ -45,6 +45,14 @@ const createCardInCurrentList = (data, autoOpen = false) => ({
   },
 });
 
+const importCardsToCurrentBoard = (rows, skipped = 0) => ({
+  type: EntryActionTypes.CARDS_IMPORT_TO_CURRENT_BOARD,
+  payload: {
+    rows,
+    skipped,
+  },
+});
+
 const handleCardCreate = (card) => ({
   type: EntryActionTypes.CARD_CREATE_HANDLE,
   payload: {
@@ -214,6 +222,7 @@ export default {
   createCard,
   createCardInCurrentContext,
   createCardInCurrentList,
+  importCardsToCurrentBoard,
   handleCardCreate,
   updateCard,
   updateCurrentCard,

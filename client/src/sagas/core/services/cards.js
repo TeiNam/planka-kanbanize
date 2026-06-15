@@ -210,6 +210,82 @@ export function* createCardInCurrentList(data, autoOpen) {
   yield call(createCard, currentListId, data, undefined, autoOpen);
 }
 
+// 엑셀에서 가져온 행들을 현재 보드에 카드로 일괄 생성한다.
+// - 컬럼: 이름 매칭 → 없으면 컬럼 유형(type) 매칭 → 그래도 없으면 건너뜀
+// - 스윔레인: 이름이 기존 레인과 일치할 때만 연결
+// - 마감일: 파싱된 Date 가 있으면 설정
+// 위치 충돌/순서 꼬임을 막기 위해 한 건씩 순차 생성(yield call)한다.
+export function* importCardsToCurrentBoard(rows, skippedFromParse) {
+  if (!rows || rows.length === 0) {
+    yield call(toast.error, i18n.t('common.noCardsToImport', { defaultValue: '가져올 카드가 없습니다.' })); // prettier-ignore
+    return;
+  }
+
+  const board = yield select(selectors.selectCurrentBoard);
+  const lists = yield select(selectors.selectAvailableListsForCurrentBoard);
+  const swimLanes = yield select(selectors.selectSwimLanesByBoardId, board.id);
+
+  const defaultType = board.defaultCardType || 'project';
+
+  const listByName = new Map();
+  const listByType = new Map();
+  (lists || []).forEach((list) => {
+    if (list.name) {
+      listByName.set(list.name.trim().toLowerCase(), list);
+    }
+    if (!listByType.has(list.type)) {
+      listByType.set(list.type, list);
+    }
+  });
+
+  const laneByName = new Map();
+  (swimLanes || []).forEach((lane) => {
+    if (lane.name) {
+      laneByName.set(lane.name.trim().toLowerCase(), lane);
+    }
+  });
+
+  let created = 0;
+  let skipped = skippedFromParse || 0;
+
+  for (let i = 0; i < rows.length; i += 1) {
+    const row = rows[i];
+    const list =
+      (row.listName && listByName.get(row.listName.toLowerCase())) ||
+      (row.listType && listByType.get(row.listType)) ||
+      null;
+
+    if (!list) {
+      skipped += 1;
+    } else {
+      const lane = row.swimLaneName ? laneByName.get(row.swimLaneName.toLowerCase()) : null;
+      const data = {
+        type: defaultType,
+        name: row.name,
+        ...(row.dueDate && { dueDate: row.dueDate }),
+        ...(lane && { swimLaneId: lane.id }),
+      };
+
+      yield call(createCard, list.id, data, undefined, false);
+      created += 1;
+    }
+  }
+
+  const message =
+    skipped > 0
+      ? i18n.t('common.cardsImportedWithSkipped', {
+          defaultValue: '카드 {{created}}개를 가져왔습니다. (건너뜀 {{skipped}}개)',
+          created,
+          skipped,
+        })
+      : i18n.t('common.cardsImported', {
+          defaultValue: '카드 {{created}}개를 가져왔습니다.',
+          created,
+        });
+
+  yield call(toast.success, message);
+}
+
 export function* handleCardCreate(card) {
   let users;
   let cardMemberships;
@@ -930,6 +1006,7 @@ export default {
   createCard,
   createCardInCurrentContext,
   createCardInCurrentList,
+  importCardsToCurrentBoard,
   handleCardCreate,
   updateCard,
   updateCurrentCard,
