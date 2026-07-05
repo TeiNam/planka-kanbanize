@@ -1,6 +1,7 @@
 services:
   planka:
     image: ghcr.io/plankanban/planka:latest
+    pull_policy: always
     restart: on-failure
     volumes:
       - data:/app/data
