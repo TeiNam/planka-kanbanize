@@ -228,6 +228,7 @@ export default {
       hideCompletedTasks: 'Hide completed tasks',
       hideFromProjectListAndFavorites: 'Hide from project list and favorites',
       holidayApiEndpoint: 'Holiday API endpoint',
+      holidayApiKey: 'Holiday API key',
       holidayInformationUnavailable: 'Holiday information is currently unavailable.',
       holidays: 'Holidays',
       host: 'Host',

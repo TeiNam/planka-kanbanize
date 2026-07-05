@@ -73,6 +73,12 @@
  *                 maxLength: 2048
  *                 description: Holiday API base URL (http/https only, empty string clears it)
  *                 example: https://holidays.example.com/api
+ *               holidayApiKey:
+ *                 type: string
+ *                 maxLength: 2048
+ *                 nullable: true
+ *                 description: Holiday API key sent as the X-API-Key header (write-only, empty string clears it, never returned)
+ *                 example: my-secret-api-key
  *     responses:
  *       200:
  *         description: Project updated successfully
@@ -178,6 +184,12 @@ module.exports = {
       maxLength: 2048,
       custom: isHolidayApiEndpoint,
     },
+    // 공휴일 API 인증 키(write-only). 빈 문자열이면 저장된 키를 지운다.
+    holidayApiKey: {
+      type: 'string',
+      maxLength: 2048,
+      allowNull: true,
+    },
   },
 
   exits: {
@@ -244,6 +256,7 @@ module.exports = {
         'backgroundType',
         'backgroundGradient',
         'holidayApiEndpoint',
+        'holidayApiKey',
       );
     }
 
@@ -303,6 +316,7 @@ module.exports = {
       'isHidden',
       'isFavorite',
       'holidayApiEndpoint',
+      'holidayApiKey',
     ]);
 
     project = await sails.helpers.projects.updateOne

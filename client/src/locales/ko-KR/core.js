@@ -226,6 +226,7 @@ export default {
       hideCompletedTasks: '완료된 작업 숨기기',
       hideFromProjectListAndFavorites: '프로젝트 목록과 즐겨찾기에서 숨기기',
       holidayApiEndpoint: '공휴일 API 주소',
+      holidayApiKey: '공휴일 API 키',
       holidayInformationUnavailable: '현재 공휴일 정보를 사용할 수 없습니다.',
       holidays: '공휴일',
       host: '호스트',

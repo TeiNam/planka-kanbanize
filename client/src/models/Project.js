@@ -23,6 +23,7 @@ export default class extends BaseModel {
       getDefault: () => false,
     }),
     holidayApiEndpoint: attr(),
+    isHolidayApiKeySet: attr(),
     ownerProjectManagerId: oneToOne({
       to: 'ProjectManager',
       as: 'ownerProjectManager',

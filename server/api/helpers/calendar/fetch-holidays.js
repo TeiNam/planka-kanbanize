@@ -39,13 +39,15 @@ const buildHolidayUrl = (endpoint, year, month) => {
 };
 
 // AbortController 기반 타임아웃을 적용해 fetch 한다 (R11.5).
-// 외부 호출 대상은 board 에 저장된 endpoint 로 구성된 url 로만 한정된다 (R13.3).
-const fetchWithTimeout = (url) => {
+// 외부 호출 대상은 project 에 저장된 endpoint 로 구성된 url 로만 한정된다 (R13.3).
+// apiKey 가 있으면 X-API-Key 헤더로 전송한다.
+const fetchWithTimeout = (url, apiKey) => {
   const abortController = new AbortController();
   const timeout = setTimeout(() => abortController.abort(), FETCH_TIMEOUT);
 
   return fetch(url, {
     signal: abortController.signal,
+    headers: apiKey ? { 'X-API-Key': apiKey } : undefined,
     dispatcher: sails.config.custom.outgoingProxy
       ? new ProxyAgent(sails.config.custom.outgoingProxy)
       : undefined,
@@ -84,6 +86,10 @@ module.exports = {
       type: 'string',
       allowNull: true,
     },
+    apiKey: {
+      type: 'string',
+      allowNull: true,
+    },
     year: {
       type: 'number',
       required: true,
@@ -95,7 +101,7 @@ module.exports = {
   },
 
   async fn(inputs) {
-    const { endpoint, year, month } = inputs;
+    const { endpoint, apiKey, year, month } = inputs;
 
     // endpoint 미설정/빈 문자열 → 공휴일 없음 (R10.4)
     if (!endpoint) {
@@ -111,7 +117,7 @@ module.exports = {
     let response;
     let buffer;
     try {
-      response = await fetchWithTimeout(url);
+      response = await fetchWithTimeout(url, apiKey);
 
       // 비-OK 응답 → 공휴일 없음 (R11.1)
       if (!response.ok) {

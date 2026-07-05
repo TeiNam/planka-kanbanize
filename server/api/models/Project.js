@@ -125,6 +125,14 @@ module.exports = {
   BackgroundTypes,
   BACKGROUND_GRADIENTS,
 
+  // 공휴일 API 키는 write-only: 직렬화 시 값을 제거하고 설정 여부만 노출한다.
+  customToJSON() {
+    return {
+      ..._.omit(this, ['holidayApiKey']),
+      isHolidayApiKeySet: !!this.holidayApiKey,
+    };
+  },
+
   attributes: {
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
@@ -160,6 +168,13 @@ module.exports = {
       type: 'string',
       allowNull: true,
       columnName: 'holiday_api_endpoint',
+    },
+    // 공휴일 API 인증 키(X-API-Key 헤더). 서버 전용(write-only) 이므로
+    // customToJSON 에서 응답/소켓/웹훅 노출을 차단한다.
+    holidayApiKey: {
+      type: 'string',
+      allowNull: true,
+      columnName: 'holiday_api_key',
     },
 
     //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗

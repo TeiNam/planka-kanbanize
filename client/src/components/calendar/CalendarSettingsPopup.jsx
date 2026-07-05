@@ -48,6 +48,9 @@ const CalendarSettingsPopup = React.memo(({ onClose }) => {
   const defaultData = useMemo(
     () => ({
       holidayApiEndpoint: project.holidayApiEndpoint || '',
+      // 키는 write-only: 서버가 값을 내려주지 않으므로 항상 빈 값에서 시작한다.
+      // (저장된 키가 있으면 placeholder 로만 표시)
+      holidayApiKey: '',
     }),
     [project.holidayApiEndpoint],
   );
@@ -60,6 +63,7 @@ const CalendarSettingsPopup = React.memo(({ onClose }) => {
     () => ({
       ...data,
       holidayApiEndpoint: data.holidayApiEndpoint.trim(),
+      holidayApiKey: data.holidayApiKey.trim(),
     }),
     [data],
   );
@@ -73,12 +77,18 @@ const CalendarSettingsPopup = React.memo(({ onClose }) => {
       return;
     }
 
-    // 빈 문자열이면 서버에 빈 값을 저장해 주소를 지운다(R9.5).
-    dispatch(
-      entryActions.updateProject(project.id, {
-        holidayApiEndpoint: cleanData.holidayApiEndpoint,
-      }),
-    );
+    const values = {
+      // 빈 문자열이면 서버에 빈 값을 저장해 주소를 지운다(R9.5).
+      holidayApiEndpoint: cleanData.holidayApiEndpoint,
+    };
+
+    // 키는 write-only: 사용자가 새 값을 입력했을 때만 전송한다.
+    // 빈 값이면 기존 키를 그대로 두고(전송 안 함), 명시적 해제는 endpoint 지우기로 갈음한다.
+    if (cleanData.holidayApiKey !== '') {
+      values.holidayApiKey = cleanData.holidayApiKey;
+    }
+
+    dispatch(entryActions.updateProject(project.id, values));
 
     onClose();
   }, [cleanData, endpointFieldRef, project.id, dispatch, onClose]);
@@ -121,6 +131,21 @@ const CalendarSettingsPopup = React.memo(({ onClose }) => {
             maxLength={2048}
             readOnly={!canEdit}
             disabled={!canEdit}
+            className={styles.field}
+            onKeyDown={handleFieldKeyDown}
+            onChange={handleFieldChange}
+          />
+          <div className={styles.text}>{t('common.holidayApiKey')}</div>
+          <Input
+            fluid
+            type="password"
+            name="holidayApiKey"
+            value={data.holidayApiKey}
+            placeholder={project.isHolidayApiKeySet ? '••••••••' : ''}
+            maxLength={2048}
+            readOnly={!canEdit}
+            disabled={!canEdit}
+            autoComplete="new-password"
             className={styles.field}
             onKeyDown={handleFieldKeyDown}
             onChange={handleFieldChange}

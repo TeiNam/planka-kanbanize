@@ -67,6 +67,7 @@ module.exports = {
     // 클라이언트는 endpoint 를 전달하지 않으며 서버가 project 레코드에서 직접 읽는다.
     const holidays = await sails.helpers.calendar.fetchHolidays.with({
       endpoint: project.holidayApiEndpoint,
+      apiKey: project.holidayApiKey,
       year: inputs.year,
       month: inputs.month,
     });

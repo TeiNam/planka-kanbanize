@@ -44,6 +44,10 @@ describe('공휴일 연동 통합 테스트', () => {
   const setProjectEndpoint = (value) =>
     Project.updateOne({ id: project.id }).set({ holidayApiEndpoint: value });
 
+  // project.holidayApiKey 값을 설정/해제하는 헬퍼
+  const setProjectApiKey = (value) =>
+    Project.updateOne({ id: project.id }).set({ holidayApiKey: value });
+
   before(async () => {
     app = sails.hooks.http.app;
 
@@ -129,9 +133,10 @@ describe('공휴일 연동 통합 테스트', () => {
   // =========================================================================
   describe('GET /api/projects/:projectId/holidays', () => {
     afterEach(async () => {
-      // fetch 스텁 복원 및 endpoint 초기화(다음 테스트 격리)
+      // fetch 스텁 복원 및 endpoint/apiKey 초기화(다음 테스트 격리)
       global.fetch = originalFetch;
       await setProjectEndpoint(null);
+      await setProjectApiKey(null);
     });
 
     it('endpoint 미설정이면 외부 호출 없이 빈 배열을 반환해야 함 (R10.4)', async () => {
@@ -257,6 +262,46 @@ describe('공휴일 연동 통합 테스트', () => {
       expect(res.body.items).to.deep.equal([{ date: '2026-06-06', name: 'Memorial Day' }]);
     });
 
+    it('apiKey 가 설정되면 외부 호출에 X-API-Key 헤더를 실어야 함', async () => {
+      await setProjectEndpoint('https://holidays.example.com/api');
+      await setProjectApiKey('secret-key-123');
+
+      let sentHeaders;
+      global.fetch = (url, options) => {
+        sentHeaders = options && options.headers;
+        return Promise.resolve(
+          makeFetchResponse(JSON.stringify([{ date: '2026-06-06', name: 'Memorial Day' }])),
+        );
+      };
+
+      await request(app)
+        .get(`/api/projects/${project.id}/holidays`)
+        .query({ year: 2026, month: 6 })
+        .set('Authorization', `Bearer ${viewerToken}`)
+        .expect(200);
+
+      expect(sentHeaders).to.deep.equal({ 'X-API-Key': 'secret-key-123' });
+    });
+
+    it('apiKey 미설정이면 X-API-Key 헤더를 실지 않아야 함', async () => {
+      await setProjectEndpoint('https://holidays.example.com/api');
+      await setProjectApiKey(null);
+
+      let sentHeaders = 'unset';
+      global.fetch = (url, options) => {
+        sentHeaders = options && options.headers;
+        return Promise.resolve(makeFetchResponse(JSON.stringify([])));
+      };
+
+      await request(app)
+        .get(`/api/projects/${project.id}/holidays`)
+        .query({ year: 2026, month: 6 })
+        .set('Authorization', `Bearer ${viewerToken}`)
+        .expect(200);
+
+      expect(sentHeaders).to.equal(undefined);
+    });
+
     it('비멤버는 404를 반환해야 함 (R6.2/13.4)', async () => {
       await setProjectEndpoint('https://holidays.example.com/api');
 
@@ -299,6 +344,46 @@ describe('공휴일 연동 통합 테스트', () => {
   describe('PATCH /api/projects/:id (holidayApiEndpoint)', () => {
     afterEach(async () => {
       await setProjectEndpoint(null);
+      await setProjectApiKey(null);
+    });
+
+    it('프로젝트 관리자는 holidayApiKey 를 저장할 수 있고, 응답은 키 대신 설정 여부만 노출해야 함 (write-only)', async () => {
+      const res = await request(app)
+        .patch(`/api/projects/${project.id}`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send({ holidayApiKey: 'secret-key-123' })
+        .expect(200);
+
+      // 응답에 키 원문이 절대 포함되면 안 됨
+      expect(res.body.item).to.not.have.property('holidayApiKey');
+      expect(res.body.item.isHolidayApiKeySet).to.equal(true);
+
+      // DB 에는 실제 키가 저장됨
+      const found = await Project.findOne({ id: project.id });
+      expect(found.holidayApiKey).to.equal('secret-key-123');
+    });
+
+    it('빈 문자열 holidayApiKey 는 저장된 키를 지워야 함', async () => {
+      await setProjectApiKey('secret-key-123');
+
+      const res = await request(app)
+        .patch(`/api/projects/${project.id}`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send({ holidayApiKey: '' })
+        .expect(200);
+
+      expect(res.body.item.isHolidayApiKeySet).to.equal(false);
+
+      const found = await Project.findOne({ id: project.id });
+      expect(found.holidayApiKey || '').to.equal('');
+    });
+
+    it('비-매니저 멤버의 holidayApiKey 변경은 거부되어야 함', async () => {
+      await request(app)
+        .patch(`/api/projects/${project.id}`)
+        .set('Authorization', `Bearer ${viewerToken}`)
+        .send({ holidayApiKey: 'secret-key-123' })
+        .expect(403);
     });
 
     it('비-매니저 멤버의 holidayApiEndpoint 변경은 거부되어야 함 (R9.6)', async () => {
