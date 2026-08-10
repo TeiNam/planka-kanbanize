@@ -43,10 +43,30 @@ const formatPrefixNumber = (number) => (number < 10 ? `0${number}` : String(numb
 const buildPrefixedName = (prefix, number, name) =>
   `[${prefix}-${formatPrefixNumber(number)}] ${name}`;
 
+// 카드명 맨 앞의 "[말머리-순번] " 패턴을 1회 제거한다.
+// 엑셀 내보내기 → 다시 가져오기 왕복 시 "[DB-02] [DB-01] 제목"처럼
+// 말머리가 이중으로 붙는 것을 막기 위해, 새 말머리를 붙이기 전에 호출한다.
+// 말머리 형식 규칙(허용 문자 + 폭 4 이하)에 맞는 것만 제거해 일반 대괄호 제목은 건드리지 않는다.
+const PREFIXED_NAME_REGEX = /^\[([A-Za-z0-9\uAC00-\uD7A3\u3130-\u318F]+)-\d{2,}\]\s+/;
+
+const stripPrefixedName = (name) => {
+  if (typeof name !== 'string') {
+    return name;
+  }
+
+  const match = PREFIXED_NAME_REGEX.exec(name);
+  if (!match || !isCardPrefix(match[1])) {
+    return name;
+  }
+
+  return name.slice(match[0].length);
+};
+
 module.exports = {
   MAX_PREFIX_WIDTH,
   getPrefixWidth,
   isCardPrefix,
   formatPrefixNumber,
   buildPrefixedName,
+  stripPrefixedName,
 };

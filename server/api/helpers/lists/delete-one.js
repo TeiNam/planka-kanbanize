@@ -45,6 +45,24 @@ module.exports = {
     const list = await List.qm.deleteOne(inputs.record.id);
 
     if (list) {
+      // 삭제된 리스트를 참조하는 Commitment Point 정리.
+      // dangling CP 는 메트릭 계산(getInProgressListIds)에서 조용히 무시되어
+      // 사용자가 CP 를 설정했다고 믿는 것과 다른 결과를 만들므로 명시적으로 삭제한다.
+      const commitmentPoints = await CommitmentPoint.qm.delete({
+        or: [{ leftListId: list.id }, { rightListId: list.id }],
+      });
+
+      commitmentPoints.forEach((commitmentPoint) => {
+        sails.sockets.broadcast(
+          `board:${commitmentPoint.boardId}`,
+          'commitmentPointDelete',
+          {
+            item: commitmentPoint,
+          },
+          inputs.request,
+        );
+      });
+
       sails.sockets.broadcast(
         `board:${list.boardId}`,
         'listDelete',

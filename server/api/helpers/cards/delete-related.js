@@ -67,5 +67,24 @@ module.exports = {
     await Action.qm.delete({
       cardId: cardIdOrIds,
     });
+
+    // 칸반 확장 테이블 정리 (FK CASCADE 가 없어 앱 레벨에서 정리한다)
+    // 고아 blocker 가 남으면 해당 블로커 API 전체가 pathNotFound 로 깨진다.
+    // blocker_linked_card 는 DB CASCADE(card_id/blocker_id) 로 함께 정리된다.
+    await Blocker.qm.delete({
+      cardId: cardIdOrIds,
+    });
+
+    await CardCommitmentLog.qm.delete({
+      cardId: cardIdOrIds,
+    });
+
+    await CardMovementLog.qm.delete({
+      cardId: cardIdOrIds,
+    });
+
+    await CardRelationship.qm.delete({
+      or: [{ parentCardId: cardIdOrIds }, { childCardId: cardIdOrIds }],
+    });
   },
 };

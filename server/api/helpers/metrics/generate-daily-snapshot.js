@@ -6,16 +6,19 @@
 /**
  * generate-daily-snapshot.js
  *
- * @description :: 매일 자정(UTC) 실행되는 스케줄러 헬퍼.
+ * @description :: 매일 자정(서버 로컬 타임존) 실행되는 스케줄러 헬퍼.
  *                 모든 활성 보드의 컬럼별 카드 수를 board_daily_snapshot에 기록한다.
  *                 동일 날짜에 이미 스냅샷이 존재하면 card_count를 업데이트한다.
  */
+
+const { formatLocalDate } = require('../../../utils/local-date');
 
 module.exports = {
   inputs: {},
 
   async fn() {
-    const today = new Date().toISOString().split('T')[0];
+    // 집계 기준일: 서버 로컬 타임존 (TZ 환경변수로 제어, utils/local-date.js 정책 참조)
+    const today = formatLocalDate(new Date());
 
     // 모든 보드 조회
     const boards = await Board.find({});
@@ -24,19 +27,36 @@ module.exports = {
     await Promise.allSettled(
       boards.map(async (board) => {
         try {
-          // 해당 보드의 칸반 리스트 조회 (백로그/태스크/완료/디스카드, 서브컬럼 제외)
+          // 해당 보드의 칸반 리스트 조회 (백로그/태스크/완료/디스카드, 최상위 컬럼만)
           const lists = await List.find({
             boardId: board.id,
             type: List.KANBAN_TYPES,
             parentListId: null,
           });
 
+          // 서브컬럼 카드도 부모 컬럼 카운트에 포함한다.
+          // 카드는 서브컬럼(parentListId 있는 리스트)에 위치할 수 있으므로,
+          // 최상위 컬럼의 listId 만 세면 서브컬럼 카드가 통째로 누락된다. (calculate-wip-aging.js 와 동일 규칙)
+          const subColumns = await List.find({
+            boardId: board.id,
+            parentListId: { '!=': null },
+          });
+
+          const subColumnIdsByParentId = {};
+          subColumns.forEach((subColumn) => {
+            if (!subColumnIdsByParentId[subColumn.parentListId]) {
+              subColumnIdsByParentId[subColumn.parentListId] = [];
+            }
+            subColumnIdsByParentId[subColumn.parentListId].push(subColumn.id);
+          });
+
           // 각 리스트별 카드 수 기록
           await Promise.all(
             lists.map(async (list) => {
-              // position이 null이 아닌 카드만 카운트 (활성 카드)
+              // position이 null이 아닌 카드만 카운트 (활성 카드), 서브컬럼 카드 포함
+              const countListIds = [list.id, ...(subColumnIdsByParentId[list.id] || [])];
               const cardCount = await Card.count({
-                listId: list.id,
+                listId: countListIds,
                 position: { '!=': null },
               });
 

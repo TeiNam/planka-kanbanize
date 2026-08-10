@@ -3,7 +3,7 @@
  * Licensed under the Fair Use License: https://github.com/plankanban/planka/blob/master/LICENSE.md
  */
 
-const { buildPrefixedName } = require('../../../utils/card-prefix');
+const { buildPrefixedName, stripPrefixedName } = require('../../../utils/card-prefix');
 
 module.exports = {
   inputs: {
@@ -22,6 +22,8 @@ module.exports = {
 
   exits: {
     positionMustBeInValues: {},
+    wipLimitExceeded: {},
+    systemWipLimitExceeded: {},
   },
 
   async fn(inputs) {
@@ -33,6 +35,74 @@ module.exports = {
       }
     } else {
       delete values.isDueCompleted;
+    }
+
+    // WIP 한도 검증 (block 모드일 때만 차단) — 이동(update-one.js)과 동일한 규칙.
+    // 신규 생성도 대상 컬럼의 WIP 를 늘리므로 같은 검사를 하지 않으면 생성 API 가 우회 경로가 된다.
+    //  - 컬럼 wipLimit 초과: 부모 wipLimit + (부모 자체 + 모든 자식) 카드 합산
+    //  - systemWipLimit 초과: wipLimit 설정된 task 컬럼(부모+자식) 카드 모두 카운트
+    if (
+      values.board.wipLimitMode === Board.WipLimitModes.BLOCK &&
+      values.list.type === List.Types.TASK
+    ) {
+      // 효과적 부모 list 결정 (sub-column이면 그 부모를 lookup)
+      let targetParent = values.list;
+      if (values.list.parentListId) {
+        targetParent = await List.qm.getOneById(values.list.parentListId);
+      }
+
+      const targetIsLimited =
+        targetParent && targetParent.wipLimit !== null && targetParent.wipLimit !== undefined;
+
+      if (targetIsLimited) {
+        // 1) 대상 컬럼 자체 WIP 검증 (부모 + 자식 합산)
+        const targetListIds = [targetParent.id];
+        const targetChildren = await List.find({ parentListId: targetParent.id });
+        targetChildren.forEach((child) => targetListIds.push(child.id));
+
+        const currentCount = await Card.count({
+          listId: targetListIds,
+          position: { '!=': null },
+        });
+
+        if (currentCount + 1 > targetParent.wipLimit) {
+          throw 'wipLimitExceeded';
+        }
+
+        // 2) systemWipLimit 검증
+        if (values.board.systemWipLimit !== null && values.board.systemWipLimit !== undefined) {
+          const allLists = await List.qm.getByBoardId(values.board.id);
+          const limitedParentIds = allLists
+            .filter(
+              (l) =>
+                l.type === List.Types.TASK &&
+                !l.parentListId &&
+                l.wipLimit !== null &&
+                l.wipLimit !== undefined,
+            )
+            .map((l) => l.id);
+
+          const includedListIds = [];
+          allLists.forEach((l) => {
+            if (limitedParentIds.includes(l.id)) {
+              includedListIds.push(l.id);
+            } else if (l.parentListId && limitedParentIds.includes(l.parentListId)) {
+              includedListIds.push(l.id);
+            }
+          });
+
+          if (includedListIds.length > 0) {
+            const totalCount = await Card.count({
+              listId: includedListIds,
+              position: { '!=': null },
+            });
+
+            if (totalCount + 1 > values.board.systemWipLimit) {
+              throw 'systemWipLimitExceeded';
+            }
+          }
+        }
+      }
     }
 
     if (sails.helpers.lists.isFinite(values.list)) {
@@ -83,6 +153,8 @@ module.exports = {
 
     // 보드에 카드 말머리가 활성화되어 있으면 카드명 앞에 "[말머리-순번] "을 붙인다.
     // 순번은 보드별로 원자적으로 점유해 동시 생성 시에도 중복되지 않도록 한다.
+    // ponytail: 순번 점유 후 카드 insert 가 실패하면 그 번호는 결번으로 남는다.
+    // 유일성은 보장되므로 허용하며, 결번 없는 연속성이 필요해지면 점유+insert 를 단일 트랜잭션으로 묶는다.
     const { board } = values;
     const prefix = board.cardPrefixEnabled && board.cardPrefix ? board.cardPrefix.trim() : '';
 
@@ -90,7 +162,9 @@ module.exports = {
       const number = await Board.qm.claimCardPrefixNumber(board.id);
 
       if (number !== null) {
-        values.name = buildPrefixedName(prefix, number, values.name);
+        // 엑셀 재가져오기 등으로 이미 "[말머리-순번] " 형식이 붙은 이름은
+        // 기존 말머리를 제거한 뒤 새 순번을 부여한다 (이중 부착 방지).
+        values.name = buildPrefixedName(prefix, number, stripPrefixedName(values.name));
       }
     }
 

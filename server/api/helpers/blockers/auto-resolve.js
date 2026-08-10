@@ -6,7 +6,8 @@
 /**
  * auto-resolve.js
  *
- * @description :: 카드 완료 시 연결된 활성 블로커를 자동으로 resolved 처리하는 헬퍼
+ * @description :: 카드 완료 시 연결된 활성 블로커를 자동으로 resolved 처리하는 헬퍼.
+ *                 블로커의 모든 연결 카드가 완료 상태면 해당 블로커를 resolved 로 바꾼다.
  */
 
 module.exports = {
@@ -35,41 +36,64 @@ module.exports = {
     // 고유한 블로커 ID 추출
     const blockerIds = [...new Set(linkedCards.map((link) => link.blockerId))];
 
-    // 2. 각 연결된 활성 블로커에 대해 자동 해결 조건 확인
+    // 2. 관련 데이터를 블로커/링크/카드 단위로 각각 1회씩 일괄 조회한다.
+    //    (블로커마다 순차 조회하면 블로커 수 x 링크 수만큼 쿼리가 늘어난다 — N+1)
+    const blockers = await Blocker.qm.getByIds(blockerIds);
+    const activeBlockers = blockers.filter((blocker) => blocker.status === Blocker.Statuses.ACTIVE);
+
+    if (activeBlockers.length === 0) {
+      return;
+    }
+
+    const allLinkedCards = await BlockerLinkedCard.qm.getByBlockerIds(
+      activeBlockers.map((blocker) => blocker.id),
+    );
+
+    const linksByBlockerId = {};
+    allLinkedCards.forEach((link) => {
+      if (!linksByBlockerId[link.blockerId]) {
+        linksByBlockerId[link.blockerId] = [];
+      }
+      linksByBlockerId[link.blockerId].push(link);
+    });
+
+    const cardIds = [...new Set(allLinkedCards.map((link) => link.cardId))];
+    const cards = cardIds.length > 0 ? await Card.qm.getByIds(cardIds) : [];
+
+    const cardById = {};
+    cards.forEach((card) => {
+      cardById[card.id] = card;
+    });
+
+    // 3. 자동 해결 조건 확인 후 조건부 UPDATE 로 원자적으로 전환한다.
     await Promise.all(
-      blockerIds.map(async (blockerId) => {
-        const blocker = await Blocker.qm.getOneById(blockerId);
-
-        // 활성 블로커만 처리
-        if (!blocker || blocker.status !== Blocker.Statuses.ACTIVE) {
-          return;
-        }
-
-        // 해당 블로커의 모든 연결 카드 조회
-        const allLinkedCards = await BlockerLinkedCard.qm.getByBlockerId(blockerId);
+      activeBlockers.map(async (blocker) => {
+        const links = linksByBlockerId[blocker.id] || [];
 
         // 연결 카드 0개인 블로커는 자동 해결 대상 제외
-        if (allLinkedCards.length === 0) {
+        if (links.length === 0) {
           return;
         }
 
-        // 모든 연결 카드의 completedAt 확인
-        const cards = await Promise.all(
-          allLinkedCards.map((link) => Card.qm.getOneById(link.cardId)),
-        );
-
-        // 삭제된 카드가 있으면 해결하지 않음
-        const allCompleted = cards.every((card) => card && card.completedAt);
+        // 모든 연결 카드가 존재하고 완료 상태인지 확인 (삭제된 카드가 있으면 해결하지 않음)
+        const allCompleted = links.every((link) => {
+          const card = cardById[link.cardId];
+          return card && card.completedAt;
+        });
 
         if (!allCompleted) {
           return;
         }
 
-        // 모든 카드 완료 시 블로커를 resolved로 업데이트
-        const updatedBlocker = await Blocker.qm.updateOne(blocker.id, {
-          status: Blocker.Statuses.RESOLVED,
-          resolvedAt: new Date().toISOString(),
-        });
+        // status: ACTIVE 를 조건에 포함한 단일 UPDATE 로 처리해
+        // 동시 실행(카드 두 장이 같은 순간 완료되는 경우 등)에도 한 번만 전환/브로드캐스트된다.
+        const updatedBlocker = await Blocker.qm.updateOne(
+          { id: blocker.id, status: Blocker.Statuses.ACTIVE },
+          {
+            status: Blocker.Statuses.RESOLVED,
+            resolvedAt: new Date().toISOString(),
+          },
+        );
 
         // WebSocket 브로드캐스트 (blockerUpdate)
         if (updatedBlocker) {
