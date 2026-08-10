@@ -10,6 +10,8 @@
  *                 날짜별 각 컬럼의 누적 카드 수를 반환한다.
  */
 
+const { endOfLocalDayMs } = require('../../../utils/local-date');
+
 module.exports = {
   inputs: {
     boardId: {
@@ -77,11 +79,13 @@ module.exports = {
       });
 
       collectedDates.forEach((dateStr) => {
-        const endOfDayMs = new Date(`${dateStr}T23:59:59.999Z`).getTime();
+        const endOfDayMs = endOfLocalDayMs(dateStr);
         const counts = {};
         cards.forEach((card) => {
           if (new Date(card.createdAt).getTime() > endOfDayMs) return;
-          if (card.completedAt && new Date(card.completedAt).getTime() < endOfDayMs) return;
+          // 완료 카드도 제외하지 않는다: 완료 카드는 이동 이력상 마지막 위치(완료 컬럼)로
+          // 집계되어야 스냅샷 분기(완료 컬럼의 카드 수 포함)와 값이 일치한다.
+          // 완료 카드를 제외하면 CFD 의 완료 밴드가 누적되지 않는다.
 
           const cardMoves = movementsByCard[card.id] || [];
           let { listId } = card;

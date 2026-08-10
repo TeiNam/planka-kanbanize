@@ -126,8 +126,23 @@ const ActionsStep = React.memo(({ onClose }) => {
       let result;
       try {
         result = await importBoardFromExcel(file);
-      } catch {
-        toast.error(t('common.importFailed', { defaultValue: '엑셀 파일을 읽지 못했습니다.' }));
+      } catch (error) {
+        // 상한 초과는 원인별 메시지, 그 외 파싱 실패는 공통 메시지
+        if (error && error.code === 'importFileTooLarge') {
+          toast.error(
+            t('common.importFileTooLarge', {
+              defaultValue: '엑셀 파일이 너무 큽니다. (최대 5MB)',
+            }),
+          );
+        } else if (error && error.code === 'importTooManyRows') {
+          toast.error(
+            t('common.importTooManyRows', {
+              defaultValue: '엑셀 행이 너무 많습니다. (최대 1,000행)',
+            }),
+          );
+        } else {
+          toast.error(t('common.importFailed', { defaultValue: '엑셀 파일을 읽지 못했습니다.' }));
+        }
         return;
       }
 

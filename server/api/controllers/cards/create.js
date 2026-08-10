@@ -116,6 +116,12 @@ const Errors = {
   POSITION_MUST_BE_PRESENT: {
     positionMustBePresent: 'Position must be present',
   },
+  WIP_LIMIT_EXCEEDED: {
+    wipLimitExceeded: 'Target column WIP limit would be exceeded',
+  },
+  SYSTEM_WIP_LIMIT_EXCEEDED: {
+    systemWipLimitExceeded: 'Total WIP limit would be exceeded',
+  },
 };
 
 module.exports = {
@@ -173,6 +179,12 @@ module.exports = {
     positionMustBePresent: {
       responseType: 'unprocessableEntity',
     },
+    wipLimitExceeded: {
+      responseType: 'unprocessableEntity',
+    },
+    systemWipLimitExceeded: {
+      responseType: 'unprocessableEntity',
+    },
   },
 
   async fn(inputs) {
@@ -217,7 +229,9 @@ module.exports = {
         },
         request: this.req,
       })
-      .intercept('positionMustBeInValues', () => Errors.POSITION_MUST_BE_PRESENT);
+      .intercept('positionMustBeInValues', () => Errors.POSITION_MUST_BE_PRESENT)
+      .intercept('wipLimitExceeded', () => Errors.WIP_LIMIT_EXCEEDED)
+      .intercept('systemWipLimitExceeded', () => Errors.SYSTEM_WIP_LIMIT_EXCEEDED);
 
     return {
       item: card,

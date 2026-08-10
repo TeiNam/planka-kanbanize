@@ -5,6 +5,19 @@
 
 import ExcelJS from 'exceljs';
 
+// 업로드 상한: 초과 시 code 를 가진 Error 를 던진다 (호출부에서 메시지 매핑).
+// 파싱 전 파일 크기, 파싱 후 행 수를 각각 제한해 브라우저 멈춤/대량 API 호출을 막는다.
+export const MAX_IMPORT_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+export const MAX_IMPORT_ROWS = 1000;
+// 서버 카드 생성 입력의 name maxLength(1024)와 동일 — 초과분은 잘라서 400 응답을 피한다.
+const MAX_CARD_NAME_LENGTH = 1024;
+
+const createImportError = (code) => {
+  const error = new Error(code);
+  error.code = code;
+  return error;
+};
+
 // export-board-to-excel.js 와 동일한 헤더 → 내부 키 매핑
 const HEADER_TO_KEY = {
   '카드 ID': 'id',
@@ -61,6 +74,10 @@ const parseDueDate = (text) => {
 // 반환: { rows: [{ name, listName, listType, swimLaneName, dueDate }], skipped }
 // - 제목(name)이 없는데 다른 값이 있는 행은 skipped 로 집계 (완전 빈 행은 무시)
 const importBoardFromExcel = async (file) => {
+  if (file.size > MAX_IMPORT_FILE_SIZE_BYTES) {
+    throw createImportError('importFileTooLarge');
+  }
+
   const workbook = new ExcelJS.Workbook();
   const arrayBuffer = await file.arrayBuffer();
   await workbook.xlsx.load(arrayBuffer);
@@ -68,6 +85,10 @@ const importBoardFromExcel = async (file) => {
   const sheet = workbook.worksheets[0];
   if (!sheet) {
     return { rows: [], skipped: 0 };
+  }
+
+  if (sheet.rowCount - 1 > MAX_IMPORT_ROWS) {
+    throw createImportError('importTooManyRows');
   }
 
   // 1행을 헤더로 읽어 컬럼 번호 → 내부 키 매핑
@@ -102,7 +123,7 @@ const importBoardFromExcel = async (file) => {
     }
 
     rows.push({
-      name,
+      name: name.slice(0, MAX_CARD_NAME_LENGTH),
       listName: (record.list || '').trim(),
       listType: (record.listType || '').trim(),
       swimLaneName: (record.swimLane || '').trim(),

@@ -11,6 +11,13 @@
  *                 평균 WIP는 board_daily_snapshot에서 진행 중 컬럼의 일별 합계 평균으로 계산한다.
  */
 
+const {
+  formatLocalDate,
+  parseLocalDate,
+  addLocalDays,
+  endOfLocalDayMs,
+} = require('../../../utils/local-date');
+
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
 /**
@@ -72,10 +79,10 @@ module.exports = {
   async fn(inputs) {
     const { boardId, startDate, endDate, classOfServiceId } = inputs;
 
-    // 기간 일수 계산
-    const startMs = new Date(startDate).getTime();
-    const endMs = new Date(endDate).getTime();
-    const numberOfDays = Math.max(1, Math.ceil((endMs - startMs) / MS_PER_DAY) + 1);
+    // 기간 일수 계산 (로컬 타임존 달력일 기준, 양끝 포함)
+    const startMs = parseLocalDate(startDate).getTime();
+    const endExclusiveMs = addLocalDays(parseLocalDate(endDate), 1).getTime();
+    const numberOfDays = Math.max(1, Math.round((endExclusiveMs - startMs) / MS_PER_DAY));
 
     // 보드의 Commitment Point 조회
     const commitmentPoints = await CommitmentPoint.find({ boardId }).sort('position ASC');
@@ -127,7 +134,7 @@ module.exports = {
       );
 
       dateStrs.forEach((dateStr) => {
-        const endOfDayMs = new Date(`${dateStr}T23:59:59.999Z`).getTime();
+        const endOfDayMs = endOfLocalDayMs(dateStr);
         let count = 0;
         cosCards.forEach((card) => {
           if (new Date(card.createdAt).getTime() > endOfDayMs) return;
@@ -174,7 +181,11 @@ module.exports = {
           10
         : 0;
 
-    // Delivery Rate 계산 (기간 내 완료 카드 수 / 일수)
+    // Delivery Rate 계산
+    // Little's Law(L = λW)가 성립하려면 averageWip(분모: 스냅샷 관측일)과
+    // deliveryRate(분모: 일수)가 같은 날짜 집합을 봐야 한다.
+    // 스냅샷이 있는 날짜 집합으로 완료 건수와 일수를 모두 제한한다.
+    // 스냅샷이 하나도 없으면 요청 기간 전체로 폴백한다.
     const completedCriteria = {
       boardId,
       completedAt: { '!=': null },
@@ -186,10 +197,24 @@ module.exports = {
 
     const filteredCompleted = completedCards.filter((card) => {
       const completedMs = new Date(card.completedAt).getTime();
-      return completedMs >= startMs && completedMs <= endMs + MS_PER_DAY;
+      return completedMs >= startMs && completedMs < endExclusiveMs;
     });
 
-    const deliveryRate = Math.round((filteredCompleted.length / numberOfDays) * 100) / 100;
+    const observedDateStrs = new Set(Object.keys(dailyWipMap));
+
+    let deliveryCount;
+    let deliveryDays;
+    if (observedDateStrs.size > 0) {
+      deliveryDays = observedDateStrs.size;
+      deliveryCount = filteredCompleted.filter((card) =>
+        observedDateStrs.has(formatLocalDate(new Date(card.completedAt))),
+      ).length;
+    } else {
+      deliveryDays = numberOfDays;
+      deliveryCount = filteredCompleted.length;
+    }
+
+    const deliveryRate = Math.round((deliveryCount / deliveryDays) * 100) / 100;
 
     // 예상 Lead Time = 평균 WIP / Delivery Rate
     const expectedLeadTime =

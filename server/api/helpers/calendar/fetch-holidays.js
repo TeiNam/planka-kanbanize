@@ -38,22 +38,6 @@ const buildHolidayUrl = (endpoint, year, month) => {
   return url;
 };
 
-// AbortController 기반 타임아웃을 적용해 fetch 한다 (R11.5).
-// 외부 호출 대상은 project 에 저장된 endpoint 로 구성된 url 로만 한정된다 (R13.3).
-// apiKey 가 있으면 X-API-Key 헤더로 전송한다.
-const fetchWithTimeout = (url, apiKey) => {
-  const abortController = new AbortController();
-  const timeout = setTimeout(() => abortController.abort(), FETCH_TIMEOUT);
-
-  return fetch(url, {
-    signal: abortController.signal,
-    headers: apiKey ? { 'X-API-Key': apiKey } : undefined,
-    dispatcher: sails.config.custom.outgoingProxy
-      ? new ProxyAgent(sails.config.custom.outgoingProxy)
-      : undefined,
-  }).finally(() => clearTimeout(timeout));
-};
-
 // 응답 본문을 스트리밍으로 읽되 MAX_RESPONSE_LENGTH 를 초과하면 중단하고 null 을 반환한다.
 const readResponse = async (response) => {
   const reader = response.body.getReader();
@@ -78,6 +62,44 @@ const readResponse = async (response) => {
   }
 
   return Buffer.concat(chunks);
+};
+
+// AbortController 기반 타임아웃을 적용해 fetch + 본문 읽기까지 수행한다 (R11.5).
+// 외부 호출 대상은 project 에 저장된 endpoint 로 구성된 url 로만 한정된다 (R13.3).
+// - 타이머는 본문 읽기가 끝난 뒤 해제한다. fetch 프라미스는 "헤더 도착" 시점에 resolve 되므로
+//   그 시점에 clearTimeout 하면 본문이 느리게 오는 서버에서 읽기가 무기한 매달릴 수 있다.
+// - redirect: 'error' 로 리다이렉트를 따라가지 않는다. 타 호스트로 리다이렉트되면
+//   X-API-Key 헤더가 재전송되어 키가 유출될 수 있다.
+// - apiKey 는 https 엔드포인트에만 전송한다. http 로 보내면 평문 노출된다.
+const fetchAndRead = async (url, apiKey) => {
+  const abortController = new AbortController();
+  const timeout = setTimeout(() => abortController.abort(), FETCH_TIMEOUT);
+
+  if (apiKey && url.protocol !== 'https:') {
+    sails.log.warn(
+      `[fetch-holidays] http 엔드포인트에는 X-API-Key 를 전송하지 않습니다. https 로 전환하세요: ${url.host}`,
+    );
+  }
+
+  try {
+    const response = await fetch(url, {
+      signal: abortController.signal,
+      redirect: 'error',
+      headers: apiKey && url.protocol === 'https:' ? { 'X-API-Key': apiKey } : undefined,
+      dispatcher: sails.config.custom.outgoingProxy
+        ? new ProxyAgent(sails.config.custom.outgoingProxy)
+        : undefined,
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    // abort 시 reader.read() 도 함께 거부되므로 본문 읽기까지 타임아웃이 적용된다.
+    return await readResponse(response);
+  } finally {
+    clearTimeout(timeout);
+  }
 };
 
 module.exports = {
@@ -114,23 +136,15 @@ module.exports = {
       return [];
     }
 
-    let response;
     let buffer;
     try {
-      response = await fetchWithTimeout(url, apiKey);
-
-      // 비-OK 응답 → 공휴일 없음 (R11.1)
-      if (!response.ok) {
-        return [];
-      }
-
-      buffer = await readResponse(response);
+      buffer = await fetchAndRead(url, apiKey);
     } catch (error) {
-      // 타임아웃/네트워크 오류 → 공휴일 없음 (R11.1/11.5)
+      // 타임아웃/네트워크 오류/리다이렉트 → 공휴일 없음 (R11.1/11.5)
       return [];
     }
 
-    // 응답 본문 크기 초과 → 공휴일 없음
+    // 비-OK 응답 또는 응답 본문 크기 초과 → 공휴일 없음
     if (!buffer) {
       return [];
     }

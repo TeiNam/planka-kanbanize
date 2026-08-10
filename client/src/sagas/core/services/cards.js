@@ -157,6 +157,67 @@ export function* createCard(listId, data, index, autoOpen) {
     }
   }
 
+  // WIP 한도 사전 검증 (block 모드면 거부, warn 모드면 토스트 경고만) — 이동 경로와 동일 규칙.
+  // selector가 어떤 이유로 throw해도 카드 생성 자체는 진행되도록 try로 감싼다 (서버가 최종 검증).
+  let wipBlocked = false;
+  try {
+    const board = yield select(selectors.selectBoardById, list.boardId);
+    const expediteLaneForSkip = board
+      ? yield select(selectors.selectExpediteLaneByBoardId, board.id)
+      : null;
+    const destIsExpedite = expediteLaneForSkip && nextData.swimLaneId === expediteLaneForSkip.id;
+
+    if (!destIsExpedite && list.type === ListTypes.TASK) {
+      // 대상의 효과적 부모 list (sub-column이면 그 부모, 아니면 자기 자신)
+      const targetParent = list.parentListId
+        ? yield select(selectors.selectListById, list.parentListId)
+        : list;
+      const targetIsLimited =
+        targetParent && targetParent.wipLimit !== null && targetParent.wipLimit !== undefined;
+
+      let columnExceeded = false;
+      if (targetIsLimited) {
+        const currentCount = yield select(selectors.selectWipCount, targetParent.id);
+        columnExceeded = (currentCount || 0) + 1 > targetParent.wipLimit;
+      }
+
+      let systemExceeded = false;
+      if (
+        targetIsLimited &&
+        board &&
+        board.systemWipLimit !== null &&
+        board.systemWipLimit !== undefined
+      ) {
+        const totalCardIds = yield select(selectors.selectTaskCardIdsForCurrentBoard);
+        systemExceeded = (totalCardIds ? totalCardIds.length : 0) + 1 > board.systemWipLimit;
+      }
+
+      if (columnExceeded || systemExceeded) {
+        const mode = (board && board.wipLimitMode) || 'warn';
+        if (mode === 'block') {
+          yield call(toast, {
+            type: systemExceeded
+              ? ToastTypes.SYSTEM_WIP_LIMIT_EXCEEDED
+              : ToastTypes.WIP_LIMIT_EXCEEDED,
+          });
+          wipBlocked = true;
+        } else {
+          yield call(toast, {
+            type: systemExceeded ? ToastTypes.SYSTEM_WIP_LIMIT_WARN : ToastTypes.WIP_LIMIT_WARN,
+          });
+        }
+      }
+    }
+  } catch (e) {
+    // 사전 검증 실패는 치명적이지 않다 — 서버가 최종 검증을 수행한다.
+    // eslint-disable-next-line no-console
+    console.warn('WIP pre-check failed:', e);
+  }
+
+  if (wipBlocked) {
+    return;
+  }
+
   if (isListFinite(list)) {
     nextData.position = yield select(selectors.selectNextCardPosition, listId, index);
   }

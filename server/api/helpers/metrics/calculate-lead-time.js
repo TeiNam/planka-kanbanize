@@ -10,7 +10,11 @@
  *                 Commitment Point 진입 시점부터 완료 시점까지의 경과 일수를 계산한다.
  */
 
-const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const {
+  parseLocalDate,
+  addLocalDays,
+  diffLocalCalendarDays,
+} = require('../../../utils/local-date');
 
 /**
  * 정렬된 배열에서 특정 백분위수 값을 계산한다.
@@ -73,13 +77,13 @@ module.exports = {
 
     const completedCards = await Card.find(cardCriteria);
 
-    // 날짜 범위 필터링 (completedAt이 startDate~endDate 범위 내)
-    const startMs = new Date(startDate).getTime();
-    const endMs = new Date(endDate).getTime() + MS_PER_DAY;
+    // 날짜 범위 필터링 (completedAt이 startDate~endDate 범위 내, 로컬 타임존 달력일 기준)
+    const startMs = parseLocalDate(startDate).getTime();
+    const endExclusiveMs = addLocalDays(parseLocalDate(endDate), 1).getTime();
 
     const filteredCards = completedCards.filter((card) => {
       const completedMs = new Date(card.completedAt).getTime();
-      return completedMs >= startMs && completedMs < endMs;
+      return completedMs >= startMs && completedMs < endExclusiveMs;
     });
 
     if (filteredCards.length === 0) {
@@ -105,19 +109,21 @@ module.exports = {
       }
     });
 
-    // Lead Time 계산 (일 단위)
+    // Lead Time 계산 (달력일 포함 규약, 로컬 타임존 기준)
     // 시작 기준: forward Commitment Point 통과 시점이 있으면 그 시점,
     // 없으면 카드의 startDate(태스크 컬럼 최초 진입), 그것도 없으면 createdAt 로 폴백한다.
     // (Commitment Point 미설정 보드에서도 완료 카드는 Lead Time 에 집계되도록.)
+    // 일수 규약: 시작일과 완료일을 모두 포함한 달력일 수. 같은 날 완료 = 1일,
+    // 어제 시작해 오늘 완료 = 2일. (경과 시간 ceil 방식은 1분 = 1일, 25시간 = 2일로 시각에 따라 흔들림)
     const values = [];
     filteredCards.forEach((card) => {
       const firstLog = firstForwardLogByCardId[card.id];
-      const startMsForCard = firstLog
-        ? new Date(firstLog.passedAt).getTime()
-        : new Date(card.startDate || card.createdAt).getTime();
+      const startDateForCard = firstLog
+        ? new Date(firstLog.passedAt)
+        : new Date(card.startDate || card.createdAt);
 
-      const completedAt = new Date(card.completedAt).getTime();
-      const leadTimeDays = Math.max(0, Math.ceil((completedAt - startMsForCard) / MS_PER_DAY));
+      const completedDate = new Date(card.completedAt);
+      const leadTimeDays = Math.max(1, diffLocalCalendarDays(startDateForCard, completedDate) + 1);
       values.push(leadTimeDays);
     });
 
@@ -128,7 +134,12 @@ module.exports = {
     // 통계 계산
     const sorted = [...values].sort((a, b) => a - b);
     const average = Math.round((values.reduce((sum, v) => sum + v, 0) / values.length) * 10) / 10;
-    const median = sorted[Math.floor(sorted.length / 2)];
+    // 중위값: 짝수 표본이면 가운데 두 값의 평균 (상위값 하나만 취하면 편향됨)
+    const mid = Math.floor(sorted.length / 2);
+    const median =
+      sorted.length % 2 === 1
+        ? sorted[mid]
+        : Math.round(((sorted[mid - 1] + sorted[mid]) / 2) * 10) / 10;
     const percentile85 = calculatePercentile(sorted, 85);
 
     return {

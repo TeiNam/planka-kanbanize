@@ -35,6 +35,20 @@ module.exports = {
 
     await sails.helpers.lists.deleteRelated(lists);
 
+    // 칸반 확장 테이블 정리 (FK CASCADE 가 없어 앱 레벨에서 정리한다).
+    // 카드 단위 레코드(blocker, 각종 로그)는 위 lists.deleteRelated → cards.deleteRelated 에서 정리된다.
+    await CommitmentPoint.qm.delete({
+      boardId: boardIdOrIds,
+    });
+
+    await BoardDailySnapshot.qm.delete({
+      boardId: boardIdOrIds,
+    });
+
+    await SwimLane.qm.delete({
+      boardId: boardIdOrIds,
+    });
+
     await Action.qm.update(
       {
         boardId: boardIdOrIds,
