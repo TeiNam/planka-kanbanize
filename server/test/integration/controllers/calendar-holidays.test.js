@@ -283,6 +283,44 @@ describe('공휴일 연동 통합 테스트', () => {
       expect(sentHeaders).to.deep.equal({ 'X-API-Key': 'secret-key-123' });
     });
 
+    it('점 없는 내부 호스트(http)에는 X-API-Key 헤더를 실어야 함', async () => {
+      await setProjectEndpoint('http://holiday-api:8000/api/v1/holidays');
+      await setProjectApiKey('secret-key-123');
+
+      let sentHeaders;
+      global.fetch = (url, options) => {
+        sentHeaders = options && options.headers;
+        return Promise.resolve(makeFetchResponse(JSON.stringify([])));
+      };
+
+      await request(app)
+        .get(`/api/projects/${project.id}/holidays`)
+        .query({ year: 2026, month: 6 })
+        .set('Authorization', `Bearer ${viewerToken}`)
+        .expect(200);
+
+      expect(sentHeaders).to.deep.equal({ 'X-API-Key': 'secret-key-123' });
+    });
+
+    it('공개 도메인 http 에는 X-API-Key 헤더를 실지 않아야 함', async () => {
+      await setProjectEndpoint('http://holidays.example.com/api');
+      await setProjectApiKey('secret-key-123');
+
+      let sentHeaders = 'unset';
+      global.fetch = (url, options) => {
+        sentHeaders = options && options.headers;
+        return Promise.resolve(makeFetchResponse(JSON.stringify([])));
+      };
+
+      await request(app)
+        .get(`/api/projects/${project.id}/holidays`)
+        .query({ year: 2026, month: 6 })
+        .set('Authorization', `Bearer ${viewerToken}`)
+        .expect(200);
+
+      expect(sentHeaders).to.equal(undefined);
+    });
+
     it('apiKey 미설정이면 X-API-Key 헤더를 실지 않아야 함', async () => {
       await setProjectEndpoint('https://holidays.example.com/api');
       await setProjectApiKey(null);
