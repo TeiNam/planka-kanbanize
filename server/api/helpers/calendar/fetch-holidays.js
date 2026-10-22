@@ -71,11 +71,14 @@ const readResponse = async (response) => {
 // - redirect: 'error' 로 리다이렉트를 따라가지 않는다. 타 호스트로 리다이렉트되면
 //   X-API-Key 헤더가 재전송되어 키가 유출될 수 있다.
 // - apiKey 는 https 엔드포인트에만 전송한다. http 로 보내면 평문 노출된다.
+//   예외: 점이 없는 호스트명(holiday-api 같은 Docker 내부 서비스명)은 공개 망을 타지 않으므로 http 에도 전송한다.
+const canSendApiKey = (url) => url.protocol === 'https:' || !url.hostname.includes('.');
+
 const fetchAndRead = async (url, apiKey) => {
   const abortController = new AbortController();
   const timeout = setTimeout(() => abortController.abort(), FETCH_TIMEOUT);
 
-  if (apiKey && url.protocol !== 'https:') {
+  if (apiKey && !canSendApiKey(url)) {
     sails.log.warn(
       `[fetch-holidays] http 엔드포인트에는 X-API-Key 를 전송하지 않습니다. https 로 전환하세요: ${url.host}`,
     );
@@ -85,7 +88,7 @@ const fetchAndRead = async (url, apiKey) => {
     const response = await fetch(url, {
       signal: abortController.signal,
       redirect: 'error',
-      headers: apiKey && url.protocol === 'https:' ? { 'X-API-Key': apiKey } : undefined,
+      headers: apiKey && canSendApiKey(url) ? { 'X-API-Key': apiKey } : undefined,
       dispatcher: sails.config.custom.outgoingProxy
         ? new ProxyAgent(sails.config.custom.outgoingProxy)
         : undefined,
